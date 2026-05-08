@@ -85,7 +85,7 @@ export default function App() {
       setTimeout(() => {
         setShowSplash(false);
         setUnlocked(true);
-      }, 7000);
+      }, 9000);
     } else if (pin === EDIT_PIN) {
       setUnlocked(true);
       setIsEditing(true);
