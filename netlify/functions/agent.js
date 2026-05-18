@@ -1,103 +1,101 @@
-// netlify/functions/agent.js
+import { Anthropic } from '@anthropic-ai/sdk';
 
-exports.handler = async function (event, context) {
-  // ১. প্রি-ফ্লাইট (CORS) রিকোয়েস্ট হ্যান্ডেল করা
+// নেটলিফাই ফাংশনস v2 অফিশিয়াল এক্সপোর্ট ফরম্যাট
+export default async (request, context) => {
+  // CORS এবং স্ট্রিমিং হেডার সেটআপ
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Content-Type": "application/json"
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
   };
 
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 200, headers, body: "" };
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 200, headers });
   }
 
-  // ২. শুধু POST রিকোয়েস্ট অনুমতি দেওয়া
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: "Method Not Allowed. Please use POST." }),
-    };
+  if (request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method Not Allowed" }), { 
+      status: 405, 
+      headers: { "Content-Type": "application/json" } 
+    });
   }
 
   try {
-    // ৩. ফ্রন্টএন্ড থেকে পাঠানো ইউজারের মেসেজ এবং চ্যাট হিস্ট্রি রিসিভ করা
-    const { message, chatHistory } = JSON.parse(event.body || "{}");
+    const { message, chatHistory } = await request.json();
 
     if (!message) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: "Message is required in the request body." }),
-      };
+      return new Response(JSON.stringify({ error: "Message is required" }), { 
+        status: 400, 
+        headers: { "Content-Type": "application/json" } 
+      });
     }
 
-    // ৪. Netlify-তে সেট করা আপনার আসল AI API Key চেক করা
-    const apiKey = process.env.AI_AGENT_SECRET_KEY; 
-    
-    if (!apiKey) {
-      return {
-        statusCode: 500,
-        headers,
-        body: JSON.stringify({ error: "AI Agent API Key is missing in Netlify settings." }),
-      };
-    }
+    // Netlify AI Gateway-এর মাধ্যমে জিরো-কনফিগ ক্লায়েন্ট ইনিশিয়ালাইজেশন
+    const anthropic = new Anthropic();
 
-    // ৫. এআই মেমরি ও সিস্টেম প্রম্পট সাজানো
-    const baseMessages = [
-      { role: "system", content: "You are a helpful online assistant managing tasks for Md Mahsin." }
-    ];
+    // সিস্টেম প্রম্পটকে আরও বেশি ইন্টেলিজেন্ট ও মহসিন সাহেবের জন্য পারসোনালাইজড করা হলো
+    const systemPrompt = `You are "MT Studio AI", a highly sophisticated, premium digital agent created for Md Mahsin. 
+    You manage online tasks, write production-ready code, handle technical architecture, and assist with everyday decisions.
+    - Respond naturally like an elite human professional, avoiding AI-jargon or robotic symmetry.
+    - You are completely bilingual (Bengali and English). Adapt beautifully based on the language of the prompt.
+    - Prioritize premium quality, minimalist elegance, and absolute logic in your technical solutions.`;
 
-    // আগের ১০টি চ্যাট হিস্ট্রি যুক্ত করা (যদি থাকে)
+    // ডাইনামিক মেমোরি কন্টেন্ট অপ্টিমাইজেশন (সর্বোচ্চ শেষ ১২টি মেসেজ প্রসেস করবে টোকেন বাঁচাতে)
+    const formattedMessages = [];
     if (chatHistory && Array.isArray(chatHistory)) {
-      baseMessages.push(...chatHistory);
+      const optimizedHistory = chatHistory.slice(-12);
+      optimizedHistory.forEach(msg => {
+        if (msg.role === 'user' || msg.role === 'assistant') {
+          formattedMessages.push({ role: msg.role, content: msg.content });
+        }
+      });
     }
+    // বর্তমান মেসেজ পুশ করা
+    formattedMessages.push({ role: "user", content: message });
 
-    // বর্তমান ইউজারের মেসেজ যুক্ত করা
-    baseMessages.push({ role: "user", content: message });
+    // ReadableStream তৈরি করা রিয়েল-টাইম SSE স্ট্রিমিংয়ের জন্য
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
 
-    // ৬. আসল এআই সার্ভারে এপিআই কল পাঠানো
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini", 
-        messages: baseMessages,
-        temperature: 0.7
-      })
+        try {
+          // Claude 3.5 Sonnet-এর অফিশিয়াল স্ট্রিমিং এপিআই কল
+          const responseStream = await anthropic.messages.create({
+            model: "claude-3-5-sonnet-latest",
+            max_tokens: 4000,
+            system: systemPrompt,
+            messages: formattedMessages,
+            stream: true,
+          });
+
+          for await (const chunk of responseStream) {
+            if (chunk.type === 'content_block_delta' && chunk.delta?.text) {
+              // SSE ফরম্যাটে ডেটা পাঠানো: data: <text>\n\n
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`));
+            }
+          }
+          
+          // স্ট্রিম শেষ হওয়ার সিগন্যাল
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
+        } catch (err) {
+          // স্ট্রিম চলাকালীন ভেতরের এরর হ্যান্ডলিং
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: "Streaming disconnected. Retrying..." })}\n\n`));
+          controller.close();
+        }
+      }
     });
 
-    // ৭. রেসপন্স চেক করা
-    if (!response.ok) {
-      const errorData = await response.json();
-      return {
-        statusCode: response.status,
-        headers,
-        body: JSON.stringify({ error: "Error from AI provider", details: errorData }),
-      };
-    }
-
-    const aiData = await response.json();
-    const aiText = aiData.choices[0].message.content;
-
-    // ৮. ফ্রন্টএন্ডের চাহিদামতো 'reply' কি দিয়ে রেজাল্ট ফেরত পাঠানো
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ reply: aiText }),
-    };
+    return new Response(stream, { status: 200, headers });
 
   } catch (error) {
-    // ৯. যেকোনো সিস্টেমেটিক বা নেটওয়ার্ক এরর হ্যান্ডেল করা
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: "Internal Server Error", message: error.message }),
-    };
+    // গ্লোবাল ফলব্যাক এরর
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 };
