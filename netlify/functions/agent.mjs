@@ -1,34 +1,58 @@
 export default async (request, context) => {
-  const headers = {
+  const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+
+  const streamHeaders = {
+    ...corsHeaders,
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     "Connection": "keep-alive",
   };
 
+  const jsonHeaders = {
+    ...corsHeaders,
+    "Content-Type": "application/json",
+  };
+
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers });
+    return new Response(null, { status: 200, headers: corsHeaders });
+  }
+
+  if (request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method Not Allowed" }), { status: 405, headers: jsonHeaders });
   }
 
   try {
-    const { message } = await request.json();
+    const { message, chatHistory } = await request.json();
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "API Key missing in Netlify" }), { status: 500, headers });
+      return new Response(JSON.stringify({ error: "GROQ_API_KEY missing in Netlify settings" }), { status: 500, headers: jsonHeaders });
     }
 
     const systemPrompt = `You are Md Mahsin himself — MT Studio AI. তুমি আমি, ডিজিটাল ফর্মে। সোজাসুজি কথা বলো, "বস", "ভাই" ব্যবহার করো।`;
 
-    // একদম ক্লিন এবং মিনিমাল মেসেজ বডি যা Groq কখনো রিজেক্ট করবে না
-    const messages = [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: message }
-    ];
+    const messages = [{ role: "system", content: systemPrompt }];
 
-    // Groq-এর মে ২০২৬-এর একদম লেটেস্ট গ্যারান্টিড ফ্রি মডেল আইডি
+    // চ্যাট হিস্ট্রি একদম ক্লিন অবজেক্ট ফরম্যাটে ফিল্টার করে পুশ করা হচ্ছে
+    if (chatHistory && Array.isArray(chatHistory)) {
+      chatHistory.forEach(msg => {
+        if (msg && msg.content && (msg.role === 'user' || msg.role === 'assistant')) {
+          messages.push({
+            role: msg.role,
+            content: msg.content
+          });
+        }
+      });
+    }
+
+    // কারেন্ট ইউজার মেসেজ
+    messages.push({ role: "user", content: message });
+
+    // Groq API-এর একদম কারেক্ট লেটেস্ট মডেল এবং অফিশিয়াল এন্ডপয়েন্ট
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -36,7 +60,7 @@ export default async (request, context) => {
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama-3.3-70b-specdec",
         messages: messages,
         stream: true
       })
@@ -44,7 +68,7 @@ export default async (request, context) => {
 
     if (!response.ok) {
       const errorDetail = await response.text();
-      return new Response(JSON.stringify({ error: `Groq Refused: ${response.status}`, details: errorDetail }), { status: response.status, headers });
+      return new Response(JSON.stringify({ error: `Groq Refused (${response.status})`, details: errorDetail }), { status: response.status, headers: jsonHeaders });
     }
 
     const stream = new ReadableStream({
@@ -85,9 +109,9 @@ export default async (request, context) => {
       }
     });
 
-    return new Response(stream, { status: 200, headers });
+    return new Response(stream, { status: 200, headers: streamHeaders });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Server Error", details: error.message }), { status: 500, headers });
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message }), { status: 500, headers: jsonHeaders });
   }
 };
