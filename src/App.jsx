@@ -12,21 +12,15 @@ function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const speakText = (text) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'bn-BD';
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
     const userMessage = input.trim();
     setInput('');
+    
+    // কারেন্ট মেসেজ পাঠানোর ঠিক আগের হিস্ট্রি অবজেক্টটি স্ন্যাপশট হিসেবে রাখা হচ্ছে
+    const currentHistory = [...messages];
     
     setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
     setLoading(true);
@@ -38,13 +32,13 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
-          chatHistory: messages.slice(-10)
+          chatHistory: currentHistory.slice(-8) // শেষ ৮টি ব্যাক-অ্যান্ড-ফোর্থ মেসেজ পাঠানো হচ্ছে কনটেক্সট ঠিক রাখার জন্য
         })
       });
 
       if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || `Server status ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.details || errorData.error || `Status code ${response.status}`);
       }
 
       const reader = response.body.getReader();
@@ -79,9 +73,10 @@ function App() {
         }
       }
     } catch (error) {
+      console.error(error);
       setMessages((prev) => {
         const updated = [...prev];
-        updated[updated.length - 1].content = `ঝামেলা হইছে বস। এরর: ${error.message}। এনভায়রনমেন্ট ভ্যারিয়েবল অথবা ডিলয় চেক করুন।`;
+        updated[updated.length - 1].content = `ঝামেলা হইছে বস। এরর: ${error.message}।`;
         return updated;
       });
     } finally {
@@ -97,7 +92,7 @@ function App() {
           <div>
             <h1 className="text-sm font-semibold tracking-wide bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">MT Studio AI Agent</h1>
             <p className="text-[10px] text-emerald-400 flex items-center mt-0.5 font-medium">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>Groq Core Active
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>MT Engine Active
             </p>
           </div>
         </div>
@@ -118,17 +113,7 @@ function App() {
                   <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
               ) : (
-                <>
-                  <span className="whitespace-pre-wrap">{msg.content}</span>
-                  {msg.role === 'assistant' && (
-                    <button 
-                      onClick={() => speakText(msg.content)}
-                      className="absolute -bottom-5 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 p-1 rounded-md text-xs opacity-0 group-hover:opacity-100 transition-opacity border border-slate-700"
-                    >
-                      <span>🔊 শুনুন</span>
-                    </button>
-                  )}
-                </>
+                <span className="whitespace-pre-wrap">{msg.content}</span>
               )}
             </div>
           </div>
