@@ -99,7 +99,7 @@ function App() {
           <div>
             <h1 className="text-sm font-semibold tracking-wide bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">MT Studio AI Agent</h1>
             <p className="text-[10px] text-emerald-400 flex items-center mt-0.5 font-medium">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>Claude 3.5 Sonnet Active
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>Claude 4.6 Sonnet Active
             </p>
           </div>
         </div>
