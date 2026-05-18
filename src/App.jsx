@@ -12,6 +12,15 @@ function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const speakText = (text) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'bn-BD';
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
@@ -19,7 +28,7 @@ function App() {
     const userMessage = input.trim();
     setInput('');
     
-    // কারেন্ট মেসেজ পাঠানোর ঠিক আগের হিস্ট্রি অবজেক্টটি স্ন্যাপশট হিসেবে রাখা হচ্ছে
+    // স্টেটের বাইরে বর্তমান হিস্ট্রি কপি করে রাখা হচ্ছে নির্ভুল ডেটা পাসিংয়ের জন্য
     const currentHistory = [...messages];
     
     setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
@@ -32,13 +41,13 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
-          chatHistory: currentHistory.slice(-8) // শেষ ৮টি ব্যাক-অ্যান্ড-ফোর্থ মেসেজ পাঠানো হচ্ছে কনটেক্সট ঠিক রাখার জন্য
+          chatHistory: currentHistory.slice(-10) // শেষ ১০টি মেসেজ মেমরি হিসেবে পাঠানো হচ্ছে
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.details || errorData.error || `Status code ${response.status}`);
+        throw new Error(errorData.error || errorData.details || `Server Error ${response.status}`);
       }
 
       const reader = response.body.getReader();
@@ -76,7 +85,7 @@ function App() {
       console.error(error);
       setMessages((prev) => {
         const updated = [...prev];
-        updated[updated.length - 1].content = `ঝামেলা হইছে বস। এরর: ${error.message}।`;
+        updated[updated.length - 1].content = `ঝামেলা হইছে বস। এরর: ${error.message}`;
         return updated;
       });
     } finally {
@@ -86,18 +95,20 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans antialiased">
+      {/* হেডার */}
       <header className="p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-800/60 sticky top-0 flex items-center justify-between z-10">
         <div className="flex items-center space-x-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-blue-600 flex items-center justify-center font-bold shadow-lg shadow-violet-600/20">MT</div>
           <div>
             <h1 className="text-sm font-semibold tracking-wide bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">MT Studio AI Agent</h1>
             <p className="text-[10px] text-emerald-400 flex items-center mt-0.5 font-medium">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>MT Engine Active
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>Groq Engine Active
             </p>
           </div>
         </div>
       </header>
 
+      {/* চ্যাট কন্টেইনার */}
       <main className="flex-1 max-w-2xl w-full mx-auto p-4 overflow-y-auto space-y-6">
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -113,7 +124,17 @@ function App() {
                   <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
               ) : (
-                <span className="whitespace-pre-wrap">{msg.content}</span>
+                <>
+                  <span className="whitespace-pre-wrap">{msg.content}</span>
+                  {msg.role === 'assistant' && (
+                    <button 
+                      onClick={() => speakText(msg.content)}
+                      className="absolute -bottom-5 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 p-1 rounded-md text-xs opacity-0 group-hover:opacity-100 transition-opacity border border-slate-700"
+                    >
+                      <span>🔊 শুনুন</span>
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -121,6 +142,7 @@ function App() {
         <div ref={chatEndRef} />
       </main>
 
+      {/* ইনপুট ফিল্ড */}
       <footer className="p-4 bg-slate-950/80 backdrop-blur-md border-t border-slate-900 sticky bottom-0">
         <form onSubmit={handleSend} className="max-w-2xl mx-auto flex space-x-2.5">
           <input
