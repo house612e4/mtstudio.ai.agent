@@ -1,34 +1,42 @@
 export default async (request, context) => {
-  const headers = {
+  const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+
+  const streamHeaders = {
+    ...corsHeaders,
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
     "Connection": "keep-alive",
   };
 
+  const jsonHeaders = {
+    ...corsHeaders,
+    "Content-Type": "application/json",
+  };
+
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 200, headers });
+    return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   try {
-    const { message } = await request.json();
+    const { message, chatHistory } = await request.json();
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "API Key missing in Netlify" }), { status: 500, headers });
+      return new Response(JSON.stringify({ error: "API Key missing in Netlify" }), { status: 500, headers: jsonHeaders });
     }
 
     const systemPrompt = `You are Md Mahsin himself — MT Studio AI. তুমি আমি, ডিজিটাল ফর্মে। সোজাসুজি কথা বলো, "বস", "ভাই" ব্যবহার করো।`;
 
-    // একদম ক্লিন এবং মিনিমাল মেসেজ বডি যা Groq কখনো রিজেক্ট করবে না
     const messages = [
       { role: "system", content: systemPrompt },
+      ...(Array.isArray(chatHistory) ? chatHistory.map(m => ({ role: m.role, content: m.content })) : []),
       { role: "user", content: message }
     ];
 
-    // Groq-এর মে ২০২৬-এর একদম লেটেস্ট গ্যারান্টিড ফ্রি মডেল আইডি
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -36,7 +44,7 @@ export default async (request, context) => {
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-specdec",
+        model: "llama-3.3-70b-versatile",
         messages: messages,
         stream: true
       })
@@ -44,7 +52,7 @@ export default async (request, context) => {
 
     if (!response.ok) {
       const errorDetail = await response.text();
-      return new Response(JSON.stringify({ error: `Groq Refused: ${response.status}`, details: errorDetail }), { status: response.status, headers });
+      return new Response(JSON.stringify({ error: `Groq Refused: ${response.status}`, details: errorDetail }), { status: response.status, headers: jsonHeaders });
     }
 
     const stream = new ReadableStream({
@@ -63,9 +71,13 @@ export default async (request, context) => {
             const lines = buffer.split('\n');
             buffer = lines.pop();
 
+            let streamDone = false;
             for (const line of lines) {
               const cleanedLine = line.trim();
-              if (cleanedLine === 'data: [DONE]') break;
+              if (cleanedLine === 'data: [DONE]') {
+                streamDone = true;
+                break;
+              }
               if (cleanedLine.startsWith('data: ')) {
                 try {
                   const parsed = JSON.parse(cleanedLine.slice(6));
@@ -76,6 +88,7 @@ export default async (request, context) => {
                 } catch (e) {}
               }
             }
+            if (streamDone) break;
           }
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
@@ -85,9 +98,9 @@ export default async (request, context) => {
       }
     });
 
-    return new Response(stream, { status: 200, headers });
+    return new Response(stream, { status: 200, headers: streamHeaders });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Server Error", details: error.message }), { status: 500, headers });
+    return new Response(JSON.stringify({ error: "Server Error", details: error.message }), { status: 500, headers: jsonHeaders });
   }
 };
