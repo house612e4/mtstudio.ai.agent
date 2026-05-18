@@ -77,7 +77,7 @@ Style:
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192",
+        model: "llama-3.3-70b-specdec",
         messages: formattedMessages,
         stream: true
       })
