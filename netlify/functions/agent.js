@@ -1,46 +1,17 @@
-const { OpenAI } = require("openai");
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-exports.handler = async (event, context) => {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: JSON.stringify({ error: "Method Not Allowed" }) };
-  }
-
+exports.handler = async function (event, context) {
   try {
-    const { message, chatHistory } = JSON.parse(event.body);
-
-    if (!message) {
-      return { statusCode: 400, body: JSON.stringify({ error: "Message is required" }) };
-    }
-
-    const systemPrompt = `You are the official AI Agent of Md. Mahsin (Nd Mahsin) and his agency MT Studio. 
-    Your job is to assist clients, take project requirements for digital solutions, and collect their contact info. 
-    Be professional, polite, and honest. If asked about complex system configurations beyond your knowledge, honestly state that Mahsin will review it personally.`;
-
-    const messages = [
-      { role: "system", content: systemPrompt },
-      ...chatHistory,
-      { role: "user", content: message }
-    ];
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: messages,
-      max_tokens: 300,
-    });
-
+    // আপনার এআই এজেন্টের লজিক বা এপিআই কল এখানে হবে
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reply: response.choices[0].message.content }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: "AI Agent active and responding securely." }),
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Internal Server Error", details: error.message }),
+      body: JSON.stringify({ error: error.message }),
     };
   }
 };
