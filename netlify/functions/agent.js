@@ -62,9 +62,9 @@ export default async (request, context) => {
         const encoder = new TextEncoder();
 
         try {
-          // Claude 3.5 Sonnet-এর অফিশিয়াল স্ট্রিমিং এপিআই কল
+          // Claude 4.6 Sonnet এপিআই কল (মডেল আপডেট করা হয়েছে)
           const responseStream = await anthropic.messages.create({
-            model: "claude-3-5-sonnet-latest",
+            model: "claude-4-6-sonnet-latest",
             max_tokens: 4000,
             system: systemPrompt,
             messages: formattedMessages,
@@ -73,7 +73,7 @@ export default async (request, context) => {
 
           for await (const chunk of responseStream) {
             if (chunk.type === 'content_block_delta' && chunk.delta?.text) {
-              // SSE ফরম্যাটে ডেটা পাঠানো: data: <text>\n\n
+              // SSE ফরম্যাটে ডেটা পাঠানো
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`));
             }
           }
