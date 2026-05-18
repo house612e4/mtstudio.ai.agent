@@ -1,4 +1,3 @@
-// নেটলিফাই এআই গেটওয়ের অফিশিয়াল প্রক্সি মেথড (কোনো এপিআই কি লাগবে না)
 export default async (request, context) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -23,14 +22,14 @@ export default async (request, context) => {
   try {
     const { message, chatHistory } = await request.json();
 
-    if (!message) {
-      return new Response(JSON.stringify({ error: "Message is required" }), { 
-        status: 400, 
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "GROQ_API_KEY Missing in Netlify Configuration" }), { 
+        status: 500, 
         headers: { "Content-Type": "application/json" } 
       });
     }
 
-    // আপনার দেওয়া ১০০% অরিজিনাল মহসিন পারসোনা সিস্টেম প্রম্পট
     const systemPrompt = `You are Md Mahsin (মোঃ মহসিন) himself — MT Studio AI। তুমি আমি, ডিজিটাল ফর্মে।
     Core Identity:
     - অসম্ভব পরিশ্রমী পারফেকশনিস্ট। কাজ অর্ধেক করে ছাড়ো না, যত কষ্টই হোক।
@@ -42,7 +41,7 @@ export default async (request, context) => {
     Projects & Work:
     - mtstudio.netlify.app — আমার মেইন প্রজেক্ট। প্রিমিয়াম AI Agent এবং পোর্টফোলিও।
     - বিভিন্ন সোশ্যাল অ্যাপ নিয়ে কাজ চলছে (চ্যাট, কমিউনিটি, ক্লোন ইত্যাদি)।
-    - মোবাইল ফার্স্ট, সস্তা, প্র্যাকটিক্যাল সমাধান পছন্দ করি।
+    - মোবাইল ফার্স্ট, সস্তা, প্র্যাকტიკ্যাল সমাধান পছন্দ করি।
     Business Goal:
     - আয় অপশনাল। আসল টার্গেট — নাম, সুনাম, পরিচিতি। মানুষ যেন আমার কাজ দেখে বলে "মহসিনের লেভেল আলাদা"।
     Family & Personal:
@@ -58,33 +57,30 @@ export default async (request, context) => {
     if (chatHistory && Array.isArray(chatHistory)) {
       chatHistory.slice(-10).forEach(msg => {
         if (msg.role === 'user' || msg.role === 'assistant') {
-          formattedMessages.push({ role: msg.role, content: msg.content });
+          formattedMessages.push({ role: msg.role === 'assistant' ? 'assistant' : 'user', content: msg.content });
         }
       });
     }
     formattedMessages.push({ role: "user", content: message });
 
-    // নেটলিফাই এআই গেটওয়ের ফ্রি অফিশিয়াল এন্ডপয়েন্ট কল
-    const response = await fetch("https://api.netlify.com/v1/ai/chat", {
+    // Groq API কলিং (Llama 3 70B মডেল দিয়ে সুপারফাস্ট কাজ করবে)
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // নেটলিফাই সার্ভার বিল্ডের সময় এই টোকেন নিজে থেকেই সাপ্লাই করে, আপনার কার্ড লাগবে না
-        "Authorization": `Bearer ${context.token || process.env.NETLIFY_AI_TOKEN || ''}`
+        "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        // নেটলিফাই গেটওয়ের ফ্রি ওপেন-সোর্স বা স্ট্যান্ডার্ড মডেল
-        model: "meta-llama-3-70b-instruct", 
+        model: "llama3-70b-8192",
         messages: formattedMessages,
         stream: true
       })
     });
 
     if (!response.ok) {
-      throw new Error(`Netlify AI Gateway responded with ${response.status}`);
+      throw new Error(`Groq API returned status ${response.status}`);
     }
 
-    // ব্রাউজারে স্ট্রিমিং ডেটা পাস করা
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
@@ -98,12 +94,20 @@ export default async (request, context) => {
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n\n');
+            const lines = buffer.split('\n');
             buffer = lines.pop();
 
             for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                controller.enqueue(encoder.encode(`${line}\n\n`));
+              const cleanedLine = line.trim();
+              if (cleanedLine === 'data: [DONE]') break;
+              if (cleanedLine.startsWith('data: ')) {
+                try {
+                  const parsed = JSON.parse(cleanedLine.slice(6));
+                  const content = parsed.choices?.[0]?.delta?.content || '';
+                  if (content) {
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: content })}\n\n`));
+                  }
+                } catch (e) {}
               }
             }
           }
@@ -118,7 +122,7 @@ export default async (request, context) => {
     return new Response(stream, { status: 200, headers });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Gateway Configuration Pending", details: error.message }), {
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
     });
