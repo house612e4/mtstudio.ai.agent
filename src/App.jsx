@@ -12,7 +12,7 @@ function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ব্রাউজার স্পীচ লজিক
+  // ব্রাউজার স্পীচ লজিক (ভয়েস আউটপুট)
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -33,11 +33,10 @@ function App() {
     setInput('');
     
     setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
-    setLoading(true);
+    loading(true);
     setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
     try {
-      // পাথ নিখুঁত করতে উইন্ডো লোকেশন অরিজিন ডাইনামিকালি যোগ করা হয়েছে
       const response = await fetch(`${window.location.origin}/.netlify/functions/agent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,7 +47,7 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error(`Server returned status ${response.status}`);
+        throw new Error(`Server error: ${response.status}`);
       }
 
       const reader = response.body.getReader();
@@ -70,27 +69,36 @@ function App() {
             
             try {
               const parsed = JSON.parse(dataStr);
-              if (parsed.text) {
+              // নেটলিফাই গেটওয়ের স্ট্যান্ডার্ড রেসপন্স ফরম্যাট (choices[0].delta.content) হ্যান্ডেল করা
+              const textChunk = parsed.text || (parsed.choices?.[0]?.delta?.content) || '';
+              
+              if (textChunk) {
                 setMessages((prev) => {
                   const updated = [...prev];
                   const lastMsg = updated[updated.length - 1];
-                  lastMsg.content += parsed.text;
+                  lastMsg.content += textChunk;
                   return updated;
                 });
               }
             } catch (e) {
-              console.error("Error parsing SSE chunk", e);
+              // যদি ডিরেক্ট র স্ট্রিং আসে, সেটার ব্যাকআপ হ্যান্ডলিং
+              if (dataStr && !dataStr.startsWith('{')) {
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  const lastMsg = updated[updated.length - 1];
+                  lastMsg.content += dataStr;
+                  return updated;
+                });
+              }
             }
           }
         }
       }
     } catch (error) {
-      // আসল এররটা কনসোলে প্রিন্ট করা যাতে ডেবাগ করা যায়
-      console.error("Fetch Error Detail:", error);
-      
+      console.error("Fetch Error:", error);
       setMessages((prev) => {
         const updated = [...prev];
-        updated[updated.length - 1].content = `কানেকশনে ঝামেলা হচ্ছে বস। এরর ডিটেইল: ${error.message}। নেটলিফাই ফাংশন বিল্ড সাকসেসফুল হয়েছে কি না একবার ড্যাশবোর্ডে চেক করুন।`;
+        updated[updated.length - 1].content = `ঝামেলা হইছে বস। এরর ডিটেইল: ${error.message}। নেটলিফাই ড্যাশবোর্ডে ফাংশনটা প্রপারলি একটিভ আছে কি না চেক করুন।`;
         return updated;
       });
     } finally {
@@ -107,7 +115,7 @@ function App() {
           <div>
             <h1 className="text-sm font-semibold tracking-wide bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">MT Studio AI Agent</h1>
             <p className="text-[10px] text-emerald-400 flex items-center mt-0.5 font-medium">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>Claude Active
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>MT Engine Active
             </p>
           </div>
         </div>
