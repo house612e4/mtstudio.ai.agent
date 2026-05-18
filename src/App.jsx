@@ -1,31 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function App() {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'হ্যালো! আমি MT Studio AI Agent। মোঃ মহসিন সাহেবের অনলাইন ওয়ার্কফ্লো এবং ডেভেলপমেন্ট অ্যাসিস্ট্যান্ট হিসেবে আপনাকে সাহায্য করতে প্রস্তুত। বলুন, আজ কীভাবে সাহায্য করতে পারি?' }
+    { role: 'assistant', content: 'হ্যালো বস। MT Studio AI চালু। বলো, আজ কী করবো?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('auto');
+  const [isRecording, setIsRecording] = useState(false);
   const chatEndRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
-  // স্মুথ স্ক্রলিং লজিক
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
+  const handleSend = async (text = input, imageBase64 = null) => {
+    if (!text.trim() || loading) return;
 
-    const userMessage = input.trim();
+    const userMessage = text.trim();
     setInput('');
-    
-    // ইউজারের মেসেজ স্ক্রিনে দেখানো
-    setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
     setLoading(true);
-
-    // স্ট্রিমিং মেসেজের জন্য একটা খালি অ্যাসিস্ট্যান্ট বাবল তৈরি করা
-    setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
     try {
       const response = await fetch('/.netlify/functions/agent', {
@@ -33,14 +33,12 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
-          // মেমরির জন্য শেষ ১০টি চ্যাট পাঠানো হচ্ছে
-          chatHistory: messages.slice(-10)
+          chatHistory: messages,
+          model: selectedModel,
+          image: imageBase64
         })
       });
 
-      if (!response.ok) throw new Error("Network response was not ok");
-
-      // SSE রিয়েল-টাইম স্ট্রিম রিডার (Advanced ReadableStream Reader)
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
@@ -51,38 +49,30 @@ function App() {
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n\n');
-        
-        // শেষ ইনকমপ্লিট লাইনটি বাফারে রেখে বাকিগুলো প্রসেস করা
-        buffer = lines.pop(); 
+        buffer = lines.pop();
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const dataStr = line.slice(6).trim();
-            
             if (dataStr === '[DONE]') break;
-            
+
             try {
               const parsed = JSON.parse(dataStr);
               if (parsed.text) {
-                // স্ট্রিমিং শব্দগুলো আগের টেক্সটের সাথে রিয়েল-টাইমে জোড়া লাগানো
-                setMessages((prev) => {
+                setMessages(prev => {
                   const updated = [...prev];
-                  const lastMsg = updated[updated.length - 1];
-                  lastMsg.content += parsed.text;
+                  updated[updated.length - 1].content += parsed.text;
                   return updated;
                 });
               }
-            } catch (e) {
-              console.error("Error parsing SSE chunk", e);
-            }
+            } catch (e) {}
           }
         }
       }
     } catch (error) {
-      // নেটওয়ার্ক ফেইলুর হলে প্রফেশনাল ফলব্যাক মেসেজ
-      setMessages((prev) => {
+      setMessages(prev => {
         const updated = [...prev];
-        updated[updated.length - 1].content = 'দুঃখিত বস, কানেকশনে কিছুটা সমস্যা হচ্ছে। অনুগ্রহ করে আপনার নেটওয়ার্ক চেক করে আবার চেষ্টা করুন।';
+        updated[updated.length - 1].content = 'দুঃখিত বস, কানেকশন সমস্যা। আবার চেষ্টা করো।';
         return updated;
       });
     } finally {
@@ -90,39 +80,93 @@ function App() {
     }
   };
 
+  // Voice Input
+  const toggleVoice = () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+    } else {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = e => audioChunksRef.current.push(e.data);
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          // এখানে Speech-to-Text API (Web Speech API) ব্যবহার করা যায়
+          const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+          recognition.lang = 'bn-BD';
+          recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            handleSend(transcript);
+          };
+          recognition.start();
+        };
+        mediaRecorder.start();
+        setIsRecording(true);
+      });
+    }
+  };
+
+  // Image Upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target.result;
+      const text = "এই ইমেজটা অ্যানালাইজ করো / এর উপর কাজ করো";
+      handleSend(text, base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans antialiased selection:bg-violet-500/30">
-      {/* প্রিমিয়াম গ্লাসমরফিক হেডার */}
-      <header className="p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-800/60 sticky top-0 flex items-center justify-between z-10">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-blue-600 flex items-center justify-center font-bold shadow-lg shadow-violet-600/20">MT</div>
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased">
+      {/* Header */}
+      <header className="p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-700 sticky top-0 z-10 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center font-bold text-xl shadow-lg">MT</div>
           <div>
-            <h1 className="text-sm font-semibold tracking-wide bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">MT Studio AI Agent</h1>
-            <p className="text-[10px] text-emerald-400 flex items-center mt-0.5 font-medium">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>Claude 4.6 Sonnet Active
+            <h1 className="font-semibold tracking-tight">MT Studio AI</h1>
+            <p className="text-xs text-emerald-400 flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+              Mahsin's Clone • Live
             </p>
           </div>
         </div>
+
+        <select 
+          value={selectedModel} 
+          onChange={e => setSelectedModel(e.target.value)}
+          className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-violet-500"
+        >
+          <option value="auto">Auto (Smart Routing)</option>
+          <option value="claude">Claude Opus 4.7</option>
+          <option value="grok">Grok 4.3</option>
+          <option value="gemini">Gemini 3.1 Pro</option>
+        </select>
       </header>
 
-      {/* চ্যাট এরিয়া */}
-      <main className="flex-1 max-w-2xl w-full mx-auto p-4 overflow-y-auto space-y-6 scrollbar-thin">
-        {messages.map((msg, index) => (
-          <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-            <div className={`p-3.5 rounded-2xl text-sm leading-relaxed max-w-[88%] shadow-sm ${
-              msg.role === 'user' 
-                ? 'bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-tr-none' 
-                : 'bg-slate-900 border border-slate-800/80 text-slate-200 rounded-tl-none'
-            }`}>
-              {/* টেক্সট যদি খালি থাকে (স্ট্রিমিং শুরুর আগে) তবে ডট অ্যানিমেশন দেখাবে */}
+      {/* Chat Area */}
+      <main className="flex-1 max-w-3xl mx-auto w-full p-4 overflow-y-auto space-y-6">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] p-4 rounded-3xl ${msg.role === 'user' 
+              ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white' 
+              : 'bg-slate-900 border border-slate-700'}`}>
               {msg.content === '' ? (
-                <div className="flex space-x-1 py-1 items-center">
-                  <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="flex gap-1.5 py-2">
+                  <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                  <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                  <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
                 </div>
               ) : (
-                <span className="whitespace-pre-wrap">{msg.content}</span>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-invert prose-sm max-w-none">
+                  {msg.content}
+                </ReactMarkdown>
               )}
             </div>
           </div>
@@ -130,26 +174,39 @@ function App() {
         <div ref={chatEndRef} />
       </main>
 
-      {/* প্রিমিয়াম ইনপুট ফুটার */}
-      <footer className="p-4 bg-slate-950/80 backdrop-blur-md border-t border-slate-900 sticky bottom-0">
-        <form onSubmit={handleSend} className="max-w-2xl mx-auto flex space-x-2.5">
+      {/* Input Area */}
+      <footer className="p-4 bg-slate-950 border-t border-slate-800 sticky bottom-0">
+        <div className="max-w-3xl mx-auto flex gap-3">
+          <label className="cursor-pointer bg-slate-900 hover:bg-slate-800 p-3 rounded-2xl transition-all">
+            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+            📸
+          </label>
+
+          <button 
+            onClick={toggleVoice}
+            className={`p-3 rounded-2xl transition-all ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-slate-900 hover:bg-slate-800'}`}
+          >
+            🎤
+          </button>
+
           <input
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="আপনার কাজের নির্দেশটি এখানে লিখুন..."
-            className="flex-1 bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-60"
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSend()}
+            placeholder="বস, কী করতে হবে বলো..."
+            className="flex-1 bg-slate-900 border border-slate-700 rounded-3xl px-6 py-4 focus:outline-none focus:border-violet-500"
             disabled={loading}
-            autoFocus
           />
+
           <button
-            type="submit"
-            className="bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 px-5 py-3 rounded-xl text-sm font-medium transition-all shadow-md shadow-violet-600/10 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+            onClick={() => handleSend()}
             disabled={loading || !input.trim()}
+            className="bg-gradient-to-r from-violet-600 to-fuchsia-600 px-8 rounded-3xl font-medium disabled:opacity-50"
           >
-            পাঠান
+            Send
           </button>
-        </form>
+        </div>
       </footer>
     </div>
   );
