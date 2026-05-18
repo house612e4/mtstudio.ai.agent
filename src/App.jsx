@@ -12,10 +12,10 @@ function App() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ব্রাউজার বা কাস্টম স্পীচ লজিক (Speak Button-এর জন্য)
+  // ব্রাউজার স্পীচ লজিক
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel(); // আগের কোনো সাউন্ড চালু থাকলে তা বন্ধ করবে
+      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'bn-BD';
       utterance.rate = 1.0;
@@ -37,7 +37,8 @@ function App() {
     setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
     try {
-      const response = await fetch('/.netlify/functions/agent', {
+      // পাথ নিখুঁত করতে উইন্ডো লোকেশন অরিজিন ডাইনামিকালি যোগ করা হয়েছে
+      const response = await fetch(`${window.location.origin}/.netlify/functions/agent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -46,7 +47,9 @@ function App() {
         })
       });
 
-      if (!response.ok) throw new Error("Network response was not ok");
+      if (!response.ok) {
+        throw new Error(`Server returned status ${response.status}`);
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -82,9 +85,12 @@ function App() {
         }
       }
     } catch (error) {
+      // আসল এররটা কনসোলে প্রিন্ট করা যাতে ডেবাগ করা যায়
+      console.error("Fetch Error Detail:", error);
+      
       setMessages((prev) => {
         const updated = [...prev];
-        updated[updated.length - 1].content = 'কানেকশনে একটু ঝামেলা করতেছে ভাই। নেটওয়ার্কটা একটু চেক করে আবার ট্রাই কর তো।';
+        updated[updated.length - 1].content = `কানেকশনে ঝামেলা হচ্ছে বস। এরর ডিটেইল: ${error.message}। নেটলিফাই ফাংশন বিল্ড সাকসেসফুল হয়েছে কি না একবার ড্যাশবোর্ডে চেক করুন।`;
         return updated;
       });
     } finally {
@@ -94,14 +100,14 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans antialiased selection:bg-violet-500/30">
-      {/* প্রিমিয়াম হেডার */}
+      {/* হেডার */}
       <header className="p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-800/60 sticky top-0 flex items-center justify-between z-10">
         <div className="flex items-center space-x-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-blue-600 flex items-center justify-center font-bold shadow-lg shadow-violet-600/20">MT</div>
           <div>
             <h1 className="text-sm font-semibold tracking-wide bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">MT Studio AI Agent</h1>
             <p className="text-[10px] text-emerald-400 flex items-center mt-0.5 font-medium">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>Claude 4.6 Sonnet Active
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block mr-1.5 animate-pulse"></span>Claude Active
             </p>
           </div>
         </div>
@@ -125,12 +131,10 @@ function App() {
               ) : (
                 <>
                   <span className="whitespace-pre-wrap">{msg.content}</span>
-                  {/* অ্যাসিস্ট্যান্ট মেসেজের জন্য স্পিকার বাটন */}
                   {msg.role === 'assistant' && (
                     <button 
                       onClick={() => speakText(msg.content)}
                       className="absolute -bottom-5 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 p-1 rounded-md text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1 border border-slate-700"
-                      title="ভয়েস শুনুন"
                     >
                       <span>🔊 শুনুন</span>
                     </button>
@@ -143,7 +147,7 @@ function App() {
         <div ref={chatEndRef} />
       </main>
 
-      {/* ইনপুট ফুটার */}
+      {/* ইনপুট */}
       <footer className="p-4 bg-slate-950/80 backdrop-blur-md border-t border-slate-900 sticky bottom-0">
         <form onSubmit={handleSend} className="max-w-2xl mx-auto flex space-x-2.5">
           <input
@@ -160,7 +164,7 @@ function App() {
             className="bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 px-5 py-3 rounded-xl text-sm font-medium transition-all shadow-md active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
             disabled={loading || !input.trim()}
           >
-            পাঠান
+            ▲
           </button>
         </form>
       </footer>
