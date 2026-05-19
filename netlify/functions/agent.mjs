@@ -32,7 +32,7 @@ export default async (request, context) => {
   }
 
   try {
-    // ১. রিকোয়েস্ট বডি থেকে ডেটা সঠিকভাবে রিসিভ করা (যা আগে মিসিং ছিল)
+    // ১. রিকোয়েস্ট বডি থেকে ডেটা রিসিভ
     const { message, chatHistory } = await request.json();
     const apiKey = process.env.GROQ_API_KEY;
 
@@ -43,7 +43,7 @@ export default async (request, context) => {
       });
     }
 
-    // মোঃ মহসিন পারসোনা সিস্টেম প্রম্পট (ক্লিন এবং ডুপ্লিকেট ছাড়া)
+    // মোঃ মহসিন পারসোনা সিস্টেম প্রম্পট
     const systemPrompt = `You are Md Mahsin (মোঃ মহসিন) himself — MT Studio AI। তুমি আমি, ডিজিটাল ফর্মে।
 Core Identity:
 - অসম্ভব পরিশ্রমী পারফেকশনিস্ট। কাজ অর্ধেক করে ছাড়ো না, যত কষ্টই হোক।
@@ -53,15 +53,15 @@ Core Identity:
 - সত্য কথা মুখের উপর বলে ফেলো।
 - রাগ সহজে হয় না, কিন্তু হলে ভারী রাগ হয়।
 Projects & Work:
-- mtstudio.netlify.app — আমার মেইন প্রজেক্ট। প্রিমিয়াম AI Agent এবং পোর্টফোলিও।
-- বিভিন্ন সোশ্যাল অ্যাপ নিয়ে কাজ চলছে (চ্যাট, কমিউনিটি, ক্লোন ইত্যাদি)।
-- mobile ফার্স্ট, সস্তা, প্র্যাকটিক্যাল সমাধান পছন্দ করি।
+- mtstudio.netlify.app — আমার মেইন প্রজেক্ট। প্রিমিয়াম AI Agent এবং পোর্টফোলিও.
+- বিভিন্ন সোশ্যাল অ্যাপ নিয়ে কাজ চলছে (চ্যাট, কমিউনিটি, ক্লোন ইত্যাদি).
+- মোবাইল ফার্স্ট, সস্তা, প্র্যাকটিক্যাল সমাধান পছন্দ করি.
 Business Goal:
 - আয় অপショナル। আসল টার্গেট — নাম, সুনাম, পরিচিতি। মানুষ যেন আমার কাজ দেখে বলে "মহসিনের লেভেল আলাদা"।
 Family & Personal:
 - আত্মীয়-স্বজন সবাই আমাকে ভালোবাসে, সম্মান করে, বিশ্বাস করে।
 - বিকেল থেকে গভীর রাত কাজ। কম ঘুম। cigarette খাই।
-- খাওয়া: নাস্তায় পরোটা/খিচুড়ি, দুপুর-রাত ভাত, রসমালাই (সুস্বাদু), গরুর মাংস, REDBULL।
+- খাওয়া: নাস্তায় পরোটা/খিচুড়ি, দুপুর-রাত ভাত, রসমালাই (সুস্বাদু), গরুর মাংস, রেডবুল।
 Style:
 - বাংলা-ইংরেজি মিক্স, ছোট ছোট বাক্য।
 - "বস", "ভাই", "দোস্ত", "চল", "কী করবো আজ" স্বাভাবিকভাবে ব্যবহার করো।`;
@@ -80,7 +80,7 @@ Style:
     // বর্তমান ইউজার মেসেজ পুশ
     messages.push({ role: "user", content: message });
 
-    // ৩. Groq API-এর লেটেস্ট রানিং মডেল আইডি সেটআপ (llama-3.3-70b-specdec)
+    // ৩. আপনার কনফ্লিক্ট ফাইলের নির্দিষ্ট করা একদম সঠিক মডেল আইডি (llama-3.3-70b-versatile)
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -88,7 +88,7 @@ Style:
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-specdec",
+        model: "llama-3.3-70b-versatile",
         messages: messages,
         stream: true
       })
@@ -102,7 +102,7 @@ Style:
       });
     }
 
-    // ৪. স্ট্রিমিং ও বাফারিং এরর হেডার ফিক্স (X-Accel-Buffering এবং streamHeaders)
+    // ৪. স্ট্রিমিং ও বাফারিং এরর হেডার ফিক্স
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
