@@ -7,11 +7,10 @@ export default async (request) => {
     const token = url.searchParams.get("hub.verify_token");
     const challenge = url.searchParams.get("hub.challenge");
 
-    if (mode === "subscribe" && token === "মহসিন12345") {  // এটা পরে আমরা বদলাব
-      return new Response(challenge, { status: 200 });
-    }
-    return new Response("না", { status: 403 });
-  }
+    const token = request.url.searchParams.get("hub.verify_token");
+if (mode === "subscribe" && token === "mahsintest123") {   // ← এখানে তোমার Verify token দাও
+  return new Response(challenge, { status: 200 });
+}
 
   // POST মানে কেউ মেসেজ করেছে
   if (request.method === "POST") {
