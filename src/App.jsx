@@ -28,7 +28,7 @@ const parseMarkdown = (text) => {
 
 function App() {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'কী অবস্থা ভাই? আমি মোঃ মহসিন সাহেবের ডিজিটাল ক্লোন — MT Studio AI। কাজের কথা বলো, আজ কোন প্রজেক্ট ওড়াতে হবে?' }
+    { role: 'assistant', content: 'কী অবস্থা ভাইয়া? আমি মোঃ মহসিন সাহেবের ডিজিটাল ক্লোন — MT Studio AI। কাজের কথা বলো, আজ কোন প্রজেক্ট ওড়াতে হবে?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,7 +41,7 @@ function App() {
   const speakText = (text) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SynthesisUtterance(text);
       utterance.lang = 'bn-BD';
       window.speechSynthesis.speak(utterance);
     }
