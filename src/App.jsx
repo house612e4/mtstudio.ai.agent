@@ -5,18 +5,29 @@ const parseMarkdown = (text) => {
   if (!text) return '';
   let html = text;
   
+  // এস্কেপ এইচটিএমএল (সিকিউরিটির জন্য)
   html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  // কোড ব্লক (```code```)
   html = html.replace(/```([\s\S]+?)```/g, '<pre class="bg-slate-950 p-2.5 my-2 rounded-lg border border-slate-800 text-xs font-mono overflow-x-auto">$1</pre>');
+  
+  // In-line কোড (`code`)
   html = html.replace(/`([^`\n]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded text-violet-400 font-mono text-xs">$1</code>');
+  
+  // বোল্ড (**text**)
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+  
+  // ইটালিক (*text*)
   html = html.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
+  
+  // আনঅর্ডারড লিস্ট (- item)
   html = html.replace(/^\s*-\s+(.+)$/gm, '<li class="list-disc list-inside ml-2 my-1">$1</li>');
 
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 };
 
 function App() {
-  // আপনার দেওয়া নতুন শুভেচ্ছা বার্তাটি এখানে সেট করা হলো
+  // আপনার দেওয়া আন্তরিক শুভেচ্ছা বার্তাটি এখানে ডিফল্ট করা হলো
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'আসসালামু আলাইকুম। আমি মহসিন। কেমন আছেন? সবকিছু ঠিকঠাক আছেনি? কিছু জানার বা জিজ্ঞাসা করার থাকলে বলুন, আমি ফ্রী আছি' }
   ]);
@@ -108,7 +119,7 @@ function App() {
   };
 
   return (
-    <div className="h-[100dvh] w-full bg-slate-950 text-slate-100 flex flex-col justify-between font-sans antialiased overflow-hidden">
+    <div className="h-[100dvh] w-full bg-slate-950 text-slate-100 flex flex-col justify-between font-sans antialiased overflow-hidden select-none touch-none">
       
       {/* হেডার সেকশন */}
       <header className="p-4 bg-slate-900/80 backdrop-blur-md border-b border-slate-800/60 flex items-center justify-between z-10 shrink-0">
@@ -124,7 +135,7 @@ function App() {
       </header>
 
       {/* মেইন চ্যাট এরিয়া */}
-      <main className="flex-1 max-w-2xl w-full mx-auto p-4 overflow-y-auto space-y-6 scrollbar-none">
+      <main className="flex-1 max-w-2xl w-full mx-auto p-4 overflow-y-auto space-y-6 scrollbar-none touch-pan-y">
         {messages.map((msg, index) => (
           <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`p-3.5 rounded-2xl text-sm leading-relaxed max-w-[88%] shadow-sm relative group ${
