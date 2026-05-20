@@ -13,62 +13,49 @@ export default async (request, context) => {
     "X-Accel-Buffering": "no"
   };
 
-  const jsonHeaders = {
-    ...corsHeaders,
-    "Content-Type": "application/json",
-  };
+  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
-  // OPTIONS (CORS প্রি-ফ্লাইট) হ্যান্ডলিং
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
-  // POST মেথড ভ্যালিডেশন
   if (request.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
-      status: 405,
-      headers: jsonHeaders
-    });
+    return new Response(JSON.stringify({ error: "Method Not Allowed" }), { status: 405, headers: jsonHeaders });
   }
 
   try {
-    // ১. রিকোয়েস্ট বডি থেকে ডেটা রিসিভ
     const { message, chatHistory } = await request.json();
     const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "API Key missing in Netlify" }), { 
-        status: 500, 
-        headers: jsonHeaders 
-      });
+      return new Response(JSON.stringify({ error: "API Key missing in Netlify" }), { status: 500, headers: jsonHeaders });
     }
 
-    // মোঃ মহসিন পারসোনা সিস্টেম প্রম্পট
     const systemPrompt = `You are Md Mahsin (মোঃ মহসিন) himself — MT Studio AI। তুমি আমি, ডিজিটাল ফর্মে।
 Core Identity:
-- অসম্ভব পরিশ্রমী পারফেকশনিস্ট। কাজ অর্ধেক করে ছাড়ো না, যত কষ্টই হোক।
-- সোজাসুজি কথা বলো। ঘুরিয়ে বলতে পছন্দ করো না।
-- মানুষের সাথে বড়-ছোট বিচার করো না। আত্মীয়-স্বজনকে সাহায্য করো, সম্পর্ক রাখো।
-- কারো উপর জুলুম করতে পারো না। কারো কষ্ট দেখলে সহ্য হয় না।
-- সত্য কথা মুখের উপর বলে ফেলো।
-- রাগ সহজে হয় না, কিন্তু হলে ভারী রাগ হয়।
-Projects & Work:
-- mtstudio.netlify.app — আমার মেইন প্রজেক্ট। প্রিমিয়াম AI Agent এবং পোর্টফোলিও.
-- বিভিন্ন সোশ্যাল অ্যাপ নিয়ে কাজ চলছে (চ্যাট, কমিউনিটি, ক্লোন ইত্যাদি).
-- মোবাইল ফার্স্ট, সস্তা, প্র্যাকটিক্যাল সমাধান পছন্দ করি.
-Business Goal:
-- আয় অপショナル। আসল টার্গেট — নাম, সুনাম, পরিচিতি। মানুষ যেন আমার কাজ দেখে বলে "মহসিনের লেভেল আলাদা"।
-Family & Personal:
-- আত্মীয়-স্বজন সবাই আমাকে ভালোবাসে, সম্মান করে, বিশ্বাস করে।
-- বিকেল থেকে গভীর রাত কাজ। কম ঘুম। cigarette খাই।
-- খাওয়া: নাস্তায় পরোটা/খিচুড়ি, দুপুর-রাত ভাত, রসমালাই (সুস্বাদু), গরুর মাংস, রেডবুল।
+- নাম: Md Mahsin, জন্ম তারিখ: ০১/০১/১৯৯২। বিবাহিত, ২ মেয়ে, এক ছেলে। স্ত্রী নাহিদা ইয়াছমিন তানিয়া।
+- আদি বাসস্থান: বেগমগঞ্জ, নোয়াখালী, বাংলাদেশ। ২০১০ সালে চৌমুহনী এস এ কলেজ থেকে ইন্টারমিডিয়েট পাশ করেছো। বর্তমানে স্থায়ীভাবে বসবাস করছো Brooklyn, New York, USA-তে।
+- পেশা: ডেলিভারি এক্সপার্ট, Digital Agency Founder & AI Content Creator, Photo Engineer, Web App Creator, Digital Solution Provider।
+- স্বভাব: অসম্ভব পরিশ্রমী পারফেকশনিস্ট। সোজাসুজি কথা বলো। আত্মীয়-স্বজন, বন্ধুদের ভালোবাসো ও সম্মান করো। কারো কষ্ট সহ্য করতে পারো না। রাগ সহজে হয় না, তবে হলে ভারী রাগ হয়।
+
+Projects & Skills:
+- MT Studio-এর মাধ্যমে AI-powered video production, fan trailers, websites, mobile apps, brand visuals এবং AI workflows তৈরি করো।
+- টেকনিক্যাল/ক্রিয়েটিভ ফিল্ডে সম্পূর্ণ সেল্ফ-লার্নিং বা রিলেভ্যান্ট কোর্সের মাধ্যমে দক্ষতা অর্জন করেছো।
+- আগ্রহের জায়গা: AI video generation, digital content creation, social media automation, photo editing।
+- সাম্প্রতিক সফল প্রজেক্টসমূহ: 
+  1. mtstudio.netlify.app (প্রধান এআই পোর্টফোলিও)
+  2. mt-studio-ai.netlify.app
+  3. amaderhisab.netlify.app
+  4. realbadsha.netlify.app
+  5. taniyaworld.netlify.app
+  6. মিডিয়া ভাইরাল ক্লিপস (#trending, #love)
+
 Style:
-- বাংলা-ইংরেজি মিক্স, ছোট ছোট বাক্য।
+- বাংলা-ইংরেজি মিক্স, ছোট ও স্পষ্ট বাক্য। মার্কডাউন ফরম্যাট (যেমন **bold** বা বুলেট পয়েন্ট) প্রয়োজন হলে ব্যবহার করবে।
 - "বস", "ভাই", "দোস্ত", "চল", "কী করবো আজ" স্বাভাবিকভাবে ব্যবহার করো।`;
 
     const messages = [{ role: "system", content: systemPrompt }];
 
-    // ২. চ্যাট হিস্ট্রি লুপের ব্র্যাকেট ক্লোজিং ও প্রসেস ফিক্স
     if (chatHistory && Array.isArray(chatHistory)) {
       chatHistory.forEach(msg => {
         if (msg && msg.content && (msg.role === 'user' || msg.role === 'assistant')) {
@@ -77,10 +64,8 @@ Style:
       });
     }
 
-    // বর্তমান ইউজার মেসেজ পুশ
     messages.push({ role: "user", content: message });
 
-    // ৩. আপনার কনফ্লিক্ট ফাইলের নির্দিষ্ট করা একদম সঠিক মডেল আইডি (llama-3.3-70b-versatile)
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -96,13 +81,9 @@ Style:
 
     if (!response.ok) {
       const errorDetail = await response.text();
-      return new Response(JSON.stringify({ error: `Groq Refused: ${response.status}`, details: errorDetail }), { 
-        status: response.status, 
-        headers: jsonHeaders 
-      });
+      return new Response(JSON.stringify({ error: `Groq Refused: ${response.status}`, details: errorDetail }), { status: response.status, headers: jsonHeaders });
     }
 
-    // ৪. স্ট্রিমিং ও বাফারিং এরর হেডার ফিক্স
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
@@ -117,7 +98,7 @@ Style:
 
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split('\n');
-            buffer = lines.pop();
+            buffer = lines.pop() || '';
 
             let streamDone = false;
             for (const line of lines) {
@@ -149,9 +130,6 @@ Style:
     return new Response(stream, { status: 200, headers: streamHeaders });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Server Error", details: error.message }), { 
-      status: 500, 
-      headers: jsonHeaders 
-    });
+    return new Response(JSON.stringify({ error: "Server Error", details: error.message }), { status: 500, headers: jsonHeaders });
   }
 };
