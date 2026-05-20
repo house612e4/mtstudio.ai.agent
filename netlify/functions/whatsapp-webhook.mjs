@@ -3,7 +3,6 @@ import crypto from "crypto";
 // Meta X-Hub-Signature Verification Helper
 function verifySignature(payload, signature, appSecret) {
   if (!signature) return false;
-  // signature format: sha256=XXXX...
   const elements = signature.split("=");
   const signatureHash = elements[1];
   const expectedHash = crypto
@@ -22,7 +21,6 @@ async function getFirestoreHistory(senderPhone, projectId) {
     const data = await res.json();
     if (!data.fields || !data.fields.messages) return [];
     
-    // Firestore ArrayValue কে নরমাল JSON-এ রূপান্তর
     return data.fields.messages.arrayValue.values.map(v => {
       const parts = v.stringValue.split("||");
       return { role: parts[0], content: parts[1] };
@@ -49,7 +47,7 @@ async function saveFirestoreHistory(senderPhone, historyArray, projectId) {
 
   try {
     await fetch(url, {
-      method: "PATCH", // Creates or replaces document
+      method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)
     });
@@ -60,7 +58,7 @@ async function saveFirestoreHistory(senderPhone, historyArray, projectId) {
 
 export default async (request) => {
   const firebaseProjectId = process.env.FIREBASE_PROJECT_ID;
-  const whatsappAppSecret = process.env.WHATSAPP_APP_SECRET; // Meta App Dashboard থেকে পাবেন
+  const whatsappAppSecret = process.env.WHATSAPP_APP_SECRET;
 
   // GET: Meta Verification
   if (request.method === "GET") {
@@ -81,7 +79,6 @@ export default async (request) => {
       const rawBody = await request.text();
       const signature = request.headers.get("x-hub-signature-256");
 
-      // ১. X-Hub-Signature ভ্যালিডেশন লজিক
       if (whatsappAppSecret && !verifySignature(rawBody, signature, whatsappAppSecret)) {
         return new Response("Invalid Signature", { status: 401 });
       }
@@ -98,13 +95,12 @@ export default async (request) => {
         const phoneId = value.metadata?.phone_number_id;
         const whatsappToken = process.env.WHATSAPP_ACCESS_TOKEN;
 
-        // ২. Firebase Firestore থেকে পুরনো হিস্ট্রি নিয়ে আসা
         let historicalContext = [];
         if (firebaseProjectId) {
           historicalContext = await getFirestoreHistory(senderPhone, firebaseProjectId);
         }
 
-        const identityPrompt = `You are Md Mahsin (মোঃ মহসিন) himself — MT Studio AI. Speak directly as yourself using a mix of Bengali and English. You live in Brooklyn, from Noakhali. Act completely natural, friendly but authoritative human response. Avoid sounding like an AI bot. Use short direct sentences.`;
+        const identityPrompt = `You are Md Mahsin (মোঃ মহসিন) himself — MT Studio AI. Speak directly as yourself using a mix of Bengali and English. You live in Brooklyn, originally from Noakhali. Act completely natural and authentic. Maintain respectful tone to elders (using "ভাইয়া"/"আপা"), affectionate to juniors, and friendly ("বস"/"দোস্ত") to close friends. Always stay in character.`;
         
         const apiMessages = [
           { role: "system", content: identityPrompt },
@@ -112,7 +108,6 @@ export default async (request) => {
           { role: "user", content: incomingText }
         ];
 
-        // Groq API রিকোয়েস্ট
         const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -130,7 +125,6 @@ export default async (request) => {
           const resultJson = await groqResponse.json();
           const replicaReply = resultJson.choices?.[0]?.message?.content || "বস, একটু নেটওয়ার্ক সমস্যা মনে হয়। আরেকবার বলো?";
 
-          // হিস্ট্রি আপডেট ও Firestore-এ পুশ
           historicalContext.push({ role: "user", content: incomingText });
           historicalContext.push({ role: "assistant", content: replicaReply });
           
@@ -138,7 +132,6 @@ export default async (request) => {
             await saveFirestoreHistory(senderPhone, historicalContext.slice(-10), firebaseProjectId);
           }
 
-          // Meta API-র মাধ্যমে হোয়াটসঅ্যাপে রিপ্লাই পাঠানো
           if (whatsappToken && phoneId) {
             await fetch(`https://graph.facebook.com/v17.0/${phoneId}/messages`, {
               method: "POST",
