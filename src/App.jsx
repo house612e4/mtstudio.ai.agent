@@ -1,5 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+// কাস্টম লাইটওয়েট মার্কডাউন পার্সার
+const parseMarkdown = (text) => {
+  if (!text) return '';
+  let html = text;
+  
+  // এস্কেপ এইচটিএমএল (সিকিউরিটির জন্য)
+  html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  // কোড ব্লক (```code```)
+  html = html.replace(/```([\s\S]+?)```/g, '<pre class="bg-slate-950 p-2.5 my-2 rounded-lg border border-slate-800 text-xs font-mono overflow-x-auto">$1</pre>');
+  
+  // ইনলাইন কোড (`code`)
+  html = html.replace(/`([^`\n]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded text-violet-400 font-mono text-xs">$1</code>');
+  
+  // বোল্ড (**text**)
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+  
+  // ইটালিক (*text*)
+  html = html.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
+  
+  // আনঅর্ডারড লিস্ট (- item)
+  html = html.replace(/^\s*-\s+(.+)$/gm, '<li class="list-disc list-inside ml-2 my-1">$1</li>');
+
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
 function App() {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'কী অবস্থা ভাই? আমি মোঃ মহসিন সাহেবের ডিজিটাল ক্লোন — MT Studio AI। কাজের কথা বলো, আজ কোন প্রজেক্ট ওড়াতে হবে?' }
@@ -28,7 +54,6 @@ function App() {
     const userMessage = input.trim();
     setInput('');
     
-    // বর্তমান হিস্ট্রি আলাদা ভ্যারিয়েবলে সেভ করে পাঠানো হচ্ছে
     const currentHistory = [...messages];
     
     setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
@@ -41,7 +66,7 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
-          chatHistory: currentHistory.slice(-10) // শেষ ১০টি মেসেজ ব্যাকএন্ডে পাঠানো হচ্ছে
+          chatHistory: currentHistory.slice(-10)
         })
       });
 
@@ -52,15 +77,15 @@ function App() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
+      let unparsedBuffer = '';
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop(); 
+        unparsedBuffer += decoder.decode(value, { stream: true });
+        const lines = unparsedBuffer.split('\n\n');
+        unparsedBuffer = lines.pop() || ''; 
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
@@ -123,7 +148,7 @@ function App() {
                 </div>
               ) : (
                 <>
-                  <span className="whitespace-pre-wrap">{msg.content}</span>
+                  <span className="whitespace-pre-wrap">{parseMarkdown(msg.content)}</span>
                   {msg.role === 'assistant' && (
                     <button 
                       onClick={() => speakText(msg.content)}
