@@ -35,8 +35,11 @@ function App() {
       const response = await fetch(`${window.location.origin}/.netlify/functions/agent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage, chatHistory: currentHistory.slice(-10) })
-      });
+        body: JSON.stringify({ 
+  message: userMessage, 
+  chatHistory: ..., 
+  model: "Nexos GPT 5 2"     // অথবা অন্য মডেল
+})
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
