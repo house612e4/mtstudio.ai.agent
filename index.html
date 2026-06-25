@@ -16,7 +16,23 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans Bengali','Inter',sans-serif;display:flex;flex-direction:column;height:100dvh;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Bengali','Inter',sans-serif;display:flex;flex-direction:column;height:100dvh;position:relative;}
+#pulseBg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.55;background:
+  radial-gradient(circle at 25% 25%, rgba(34,211,238,0.30) 0%, transparent 45%),
+  radial-gradient(circle at 75% 30%, rgba(139,92,246,0.28) 0%, transparent 45%),
+  radial-gradient(circle at 50% 80%, rgba(59,130,246,0.25) 0%, transparent 50%);
+  background-size:200% 200%;
+  animation:pulseMove 14s ease-in-out infinite;
+  filter:blur(40px);
+  transition:opacity 0.4s;
+}
+#pulseBg.active{opacity:0.85;animation-duration:7s;}
+@keyframes pulseMove{
+  0%{background-position:0% 0%, 100% 0%, 50% 100%;}
+  50%{background-position:30% 40%, 70% 60%, 40% 70%;}
+  100%{background-position:0% 0%, 100% 0%, 50% 100%;}
+}
+#main,#drawer,.panel,#settingsPanel,#imageGenPanel,#tempChatPanel,#authScreen{position:relative;z-index:1;}
 button{font-family:inherit;}
 
 /* brand star (rainbow→brand gradient) */
@@ -121,6 +137,7 @@ button{font-family:inherit;}
 
 /* ===== Input bar (exact Gemini pill: + / Ask / mic / blue live) ===== */
 #input-area{flex-shrink:0;padding:8px 14px calc(14px + env(safe-area-inset-bottom));}
+.mode-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:18px;background:var(--surface-2);border:1px solid var(--border-2);color:var(--text);font-size:13.5px;font-weight:500;}
 .input-box{background:var(--surface-2);border-radius:30px;padding:7px 8px 7px 8px;display:flex;align-items:center;gap:4px;}
 .in-plus{width:42px;height:42px;border-radius:50%;border:none;background:transparent;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .in-plus svg{width:24px;height:24px;}
@@ -203,6 +220,7 @@ button{font-family:inherit;}
 </style>
 </head>
 <body>
+<div id="pulseBg"></div>
 
 <!-- ===== AUTH SCREEN ===== -->
 <div id="authScreen">
@@ -233,7 +251,14 @@ button{font-family:inherit;}
   <div class="drawer-recent-label">সাম্প্রতিক</div>
   <div id="chatHistory"></div>
   <div class="drawer-spacer"></div>
-  <button class="drawer-bottom-item" onclick="openAccount()"><div class="mini-avatar" id="drawerAvatar">M</div><span id="drawerName">অ্যাকাউন্ট</span></button>
+  <button class="drawer-bottom-item" onclick="openAccount()" style="gap:12px;">
+    <div class="mini-avatar" id="drawerAvatar" style="width:36px;height:36px;font-size:14px;">M</div>
+    <div style="flex:1;min-width:0;">
+      <div id="drawerName" style="font-size:14.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">অ্যাকাউন্ট</div>
+      <div id="drawerEmail" style="font-size:12px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">সাইন ইন করুন</div>
+    </div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--text-2);flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
 </div>
 
 <!-- ===== PLUS BOTTOM SHEET ===== -->
@@ -244,7 +269,7 @@ button{font-family:inherit;}
     <button class="sheet-card" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Photos</button>
     <button class="sheet-card" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>Camera</button>
   </div>
-  <button class="sheet-item" onclick="closePlusSheet();openImageGen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><div class="sheet-item-text"><div class="si1">ছবি</div><div class="si2">তৈরি ও এডিট করুন</div></div></button>
+  <button class="sheet-item" onclick="closePlusSheet();enterImageMode()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><div class="sheet-item-text"><div class="si1">ছবি</div><div class="si2">তৈরি ও এডিট করুন</div></div></button>
   <button class="sheet-item" onclick="closePlusSheet();openImageGen();switchGenMode('video')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg><div class="sheet-item-text"><div class="si1">ভিডিও</div><div class="si2">আরমান দিয়ে বানান</div></div></button>
   <button class="sheet-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><div class="sheet-item-text"><div class="si1">Music</div><div class="si2">অডিও ট্র্যাক বানান</div></div></button>
   <button class="sheet-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><div class="sheet-item-text"><div class="si1">Canvas</div><div class="si2">কোড, লেখা বা স্লাইড</div></div></button>
@@ -260,7 +285,19 @@ button{font-family:inherit;}
   <button class="acct-manage" id="acctManageBtn" onclick="alert('শীঘ্রই আসছে')">অ্যাকাউন্ট পরিচালনা</button>
   <button class="acct-switch" onclick="switchAccount()"><span class="as-left">Switch account</span><span class="as-right"><svg class="as-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></button>
   <div class="acct-section-label">More from MtStudio</div>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l2.4 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.6z"/></svg>MtStudio AI Plus-এ আপগ্রেড করুন</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>আরমান অ্যাপ অ্যাক্টিভিটি</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>ব্যবহারের সীমা</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/><path d="M19.5 8.5L21 10l-4 4-2-2"/></svg>ব্যক্তিগত ইন্টেলিজেন্স</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>মেমোরি ইম্পোর্ট করুন</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2l3 7h7l-5.5 5 2 7L12 17l-6.5 4 2-7L2 9h7z"/></svg>জেম ম্যানেজার</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 18a4 4 0 014-4h10a4 4 0 014 4M3 18v2a1 1 0 001 1h16a1 1 0 001-1v-2M7 14V8a5 5 0 0110 0v6"/></svg>নোটবুক</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>আপডেট</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>প্রাইভেসি হেল্প হাব</button>
   <button class="acct-item" onclick="openSettingsFromAcct()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>সেটিংস</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="16" x2="12" y2="16"/></svg>সমস্যা রিপোর্ট করুন</button>
+  <button class="acct-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12" y2="17"/></svg>সাহায্য</button>
+  <div class="settings-divider"></div>
   <button class="acct-item" onclick="clearAllHistory()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>চ্যাট ইতিহাস মুছুন</button>
   <button class="acct-item acct-signout" onclick="signOutUser()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>সাইন আউট</button>
 </div>
@@ -289,12 +326,35 @@ button{font-family:inherit;}
 </div>
 
 <!-- ===== MAIN ===== -->
+<!-- ===== TEMPORARY CHAT PANEL ===== -->
+<div id="tempChatPanel" class="panel" style="background:var(--bg);">
+  <div class="panel-header" style="justify-content:space-between;">
+    <button class="model-trigger" onclick="toggleDD()" style="padding-left:0;"><span>আরমান</span> <span class="v-name">Pro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <button class="tb-circle" onclick="closeTempChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div id="tempChat" style="flex:1;overflow-y:auto;">
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:75%;padding:24px;text-align:center;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:38px;height:38px;color:var(--text-2);margin-bottom:18px;"><circle cx="12" cy="12" r="9.5" stroke-dasharray="2 2.4" stroke-linecap="round"/><path d="M9.5 14.5l1-3.2 4.2-4.2a1 1 0 011.4 1.4l-4.2 4.2-3.2 1z" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div style="font-size:28px;font-weight:600;margin-bottom:14px;">স্বাগতম, অপরিচিত</div>
+      <div style="font-size:14px;color:var(--text-2);line-height:1.6;max-width:320px;"><u>সাময়িক চ্যাট</u> সাম্প্রতিক চ্যাটে দেখা যায় না এবং আরমানকে উন্নত করতে ব্যবহার হয় না। সুরক্ষার জন্য ৭২ ঘণ্টা সংরক্ষিত থাকে।</div>
+    </div>
+  </div>
+  <div id="input-area" style="position:relative;">
+    <div class="input-box" id="tempInputBox">
+      <button class="in-plus" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <textarea id="tempInput" rows="1" placeholder="আরমানকে জিজ্ঞেস করুন"></textarea>
+      <button class="in-mic" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg></button>
+      <button class="send-btn" id="tempSend" onclick="sendTemp()"><svg viewBox="0 0 24 24" fill="none" stroke="#050B14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg></button>
+    </div>
+  </div>
+</div>
+
 <div id="main">
-  <div id="topbar">
-    <button class="tb-circle" onclick="openDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <div id="topbar" style="justify-content:flex-start;gap:2px;">
+    <button class="tb-circle" onclick="openDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div id="model-selector" style="position:relative;">
       <button class="model-trigger" id="modelTrigger" onclick="toggleDD()"><span id="brandName">আরমান</span> <span class="v-name" id="versionName">Pro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-      <div class="model-dropdown" id="modelDropdown">
+      <div class="model-dropdown" id="modelDropdown" style="left:0;transform:none;">
         <div class="mg-label">MtStudio AI</div>
         <button class="mo selected" onclick="sel('arman','Pro','আরমান','grok-4.3','p-ar',this)"><span class="mo-icon ic-ar">✦</span><div class="mo-info"><div class="mn">আরমান Pro</div><div class="md">সর্বোচ্চ নির্ভুলতা</div></div><svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
         <button class="mo" onclick="sel('arman','Flash','আরমান','grok-build-0.1','p-ar',this)"><span class="mo-icon ic-ar">✦</span><div class="mo-info"><div class="mn">আরমান Flash</div><div class="md">দ্রুততম উত্তর</div></div><svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
@@ -310,10 +370,14 @@ button{font-family:inherit;}
         <button class="mo" onclick="sel('gemini','2.0 Flash','Gemini','gemini-2.0-flash','p-gm',this)"><span class="mo-icon ic-gm">✧</span><div class="mo-info"><div class="mn">Gemini 2.0 Flash</div><div class="md">All-around</div></div><svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
       </div>
     </div>
-    <button class="tb-circle" onclick="newChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+    <div style="flex:1;"></div>
+    <button class="tb-circle" onclick="openTempChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.5" stroke-dasharray="2 2.4" stroke-linecap="round"/><path d="M9.5 14.5l1-3.2 4.2-4.2a1 1 0 011.4 1.4l-4.2 4.2-3.2 1z" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   </div>
   <div id="chat"><div id="welcome"></div></div>
   <div id="input-area">
+    <div id="modeChipRow" style="display:none;padding:0 4px 8px;">
+      <span class="mode-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="width:16px;height:16px;"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>ছবি<svg onclick="exitImageMode()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px;margin-left:4px;cursor:pointer;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+    </div>
     <div class="input-box" id="inputBox">
       <button class="in-plus" onclick="openPlusSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
       <textarea id="input" rows="1" placeholder="আরমানকে জিজ্ঞেস করুন"></textarea>
@@ -395,6 +459,7 @@ function applyUser(u){
   const letter=(name[0]||'M').toUpperCase();
   document.getElementById('drawerAvatar').textContent=letter;
   document.getElementById('drawerName').textContent=name;
+  document.getElementById('drawerEmail').textContent=u.email||'';
   document.getElementById('acctAvatarBig').textContent=letter;
   document.getElementById('acctHi').textContent='Hi, '+name+'!';
   document.getElementById('acctEmail').textContent=u.email||'';
@@ -431,8 +496,29 @@ function hideTyping(){const e=document.getElementById('typing');if(e)e.remove();
 function newChat(){if(sessionHistory.length>0){const first=sessionHistory[0]?.content?.slice(0,40)||'নতুন চ্যাট';chatHistories.unshift({id:Date.now(),title:first});if(chatHistories.length>15)chatHistories.pop();safeStorage.set('mtstudio_histories',JSON.stringify(chatHistories));renderHistory();}sessionHistory=[];chatEl.innerHTML='<div id="welcome"></div>';renderWelcome();}
 function renderHistory(){const el=document.getElementById('chatHistory');el.innerHTML=chatHistories.slice(0,10).map(h=>`<button class="drawer-recent-item">${h.title}</button>`).join('');}
 function clearAllHistory(){if(confirm('সব চ্যাট ইতিহাস মুছে যাবে?')){chatHistories=[];safeStorage.remove('mtstudio_histories');renderHistory();newChat();closeAccount();closeSettings();}}
-async function send(){const text=inputEl.value.trim();if(!text)return;addMsg('user',text);inputEl.value='';inputEl.style.height='auto';updateInputState();showTyping();sessionHistory.push({role:'user',content:text});const pill=cPill;try{const res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','X-MT-Key':MT_KEY},body:JSON.stringify({message:text,model:cModelId,modelType:cType,history:sessionHistory.slice(-20),conversationId:(currentUser&&currentUser.uid)||'mahsin-main'})});const data=await res.json();hideTyping();if(!res.ok){addMsg('ai','সমস্যা: '+(data.error||'ত্রুটি'),pill);}else{addMsg('ai',data.reply||'...',pill);sessionHistory.push({role:'assistant',content:data.reply});if(sessionHistory.length>40)sessionHistory=sessionHistory.slice(-40);}}catch(e){hideTyping();addMsg('ai','সংযোগে সমস্যা হয়েছে।',pill);}}
-function updateInputState(){inputBox.classList.toggle('has-text',inputEl.value.trim().length>0);}
+async function send(){
+  const text=inputEl.value.trim();if(!text)return;
+  if(imageModeOn){ return sendInlineImage(text); }
+  addMsg('user',text);inputEl.value='';inputEl.style.height='auto';updateInputState();showTyping();sessionHistory.push({role:'user',content:text});const pill=cPill;try{const res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','X-MT-Key':MT_KEY},body:JSON.stringify({message:text,model:cModelId,modelType:cType,history:sessionHistory.slice(-20),conversationId:(currentUser&&currentUser.uid)||'mahsin-main'})});const data=await res.json();hideTyping();if(!res.ok){addMsg('ai','সমস্যা: '+(data.error||'ত্রুটি'),pill);}else{addMsg('ai',data.reply||'...',pill);sessionHistory.push({role:'assistant',content:data.reply});if(sessionHistory.length>40)sessionHistory=sessionHistory.slice(-40);}}catch(e){hideTyping();addMsg('ai','সংযোগে সমস্যা হয়েছে।',pill);}
+}
+async function sendInlineImage(prompt){
+  removeWelcome();
+  const w=document.createElement('div');w.className='msg-group user';w.innerHTML=`<div class="msg-content"><div class="bubble">${prompt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>`;chatEl.appendChild(w);
+  inputEl.value='';inputEl.style.height='auto';updateInputState();
+  showTyping();chatEl.scrollTop=chatEl.scrollHeight;
+  try{
+    const res=await fetch(WORKER_URL.replace(/\/$/,'')+'/image-gen',{method:'POST',headers:{'Content-Type':'application/json','X-MT-Key':MT_KEY},body:JSON.stringify({prompt,aspect_ratio:'1:1'})});
+    const data=await res.json();hideTyping();
+    const aiW=document.createElement('div');aiW.className='msg-group ai';
+    if(!res.ok||!data.images){aiW.innerHTML=`<div class="msg-content"><div class="bubble">ছবি তৈরি ব্যর্থ হয়েছে: ${data.error||''}</div></div>`;}
+    else{aiW.innerHTML=`<div class="msg-content"><div class="bubble">${data.images.map(u=>`<img src="${u}" style="width:100%;border-radius:14px;margin-top:6px;">`).join('')}</div></div>`;}
+    chatEl.appendChild(aiW);chatEl.scrollTop=chatEl.scrollHeight;
+  }catch(e){
+    hideTyping();
+    const aiW=document.createElement('div');aiW.className='msg-group ai';aiW.innerHTML=`<div class="msg-content"><div class="bubble">সংযোগে সমস্যা হয়েছে।</div></div>`;chatEl.appendChild(aiW);
+  }
+}
+function updateInputState(){const hasText=inputEl.value.trim().length>0;inputBox.classList.toggle('has-text',hasText);document.getElementById('pulseBg').classList.toggle('active',hasText);}
 inputEl.addEventListener('input',()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,120)+'px';updateInputState();});
 inputEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 
@@ -464,6 +550,46 @@ async function generateMedia(){
 }
 
 // ====== init ======
+// ====== Temporary Chat ======
+let tempHistory=[];
+function openTempChat(){document.getElementById('tempChatPanel').classList.add('open');}
+function closeTempChat(){document.getElementById('tempChatPanel').classList.remove('open');tempHistory=[];document.getElementById('tempChat').innerHTML=document.getElementById('tempChat').innerHTML;}
+async function sendTemp(){
+  const tInput=document.getElementById('tempInput');const text=tInput.value.trim();if(!text)return;
+  const tChat=document.getElementById('tempChat');
+  const w=document.createElement('div');w.className='msg-group user';w.innerHTML=`<div class="msg-content"><div class="bubble">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>`;tChat.appendChild(w);
+  tInput.value='';tInput.style.height='auto';tChat.scrollTop=tChat.scrollHeight;
+  tempHistory.push({role:'user',content:text});
+  const typingEl=document.createElement('div');typingEl.className='msg-group ai';typingEl.id='tempTyping';typingEl.innerHTML=`<div class="msg-content"><div class="bubble"><div class="typing-wrap"><span></span><span></span><span></span></div></div></div>`;tChat.appendChild(typingEl);tChat.scrollTop=tChat.scrollHeight;
+  try{
+    const res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','X-MT-Key':MT_KEY},body:JSON.stringify({message:text,model:cModelId,modelType:cType,history:tempHistory.slice(-20),conversationId:'temp-'+Date.now()})});
+    const data=await res.json();
+    document.getElementById('tempTyping')?.remove();
+    const aiW=document.createElement('div');aiW.className='msg-group ai';
+    if(!res.ok){aiW.innerHTML=`<div class="msg-content"><div class="bubble">সমস্যা: ${data.error||'ত্রুটি'}</div></div>`;}
+    else{aiW.innerHTML=`<div class="msg-content"><div class="bubble">${md(data.reply||'...')}</div></div>`;tempHistory.push({role:'assistant',content:data.reply});}
+    tChat.appendChild(aiW);tChat.scrollTop=tChat.scrollHeight;
+  }catch(e){
+    document.getElementById('tempTyping')?.remove();
+    const aiW=document.createElement('div');aiW.className='msg-group ai';aiW.innerHTML=`<div class="msg-content"><div class="bubble">সংযোগে সমস্যা হয়েছে।</div></div>`;tChat.appendChild(aiW);
+  }
+}
+document.getElementById('tempInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';});
+document.getElementById('tempInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendTemp();}});
+
+// ====== Inline Image Mode ======
+let imageModeOn=false;
+function enterImageMode(){
+  imageModeOn=true;
+  document.getElementById('modeChipRow').style.display='block';
+  inputEl.placeholder='আপনার ছবি বর্ণনা করুন';
+}
+function exitImageMode(){
+  imageModeOn=false;
+  document.getElementById('modeChipRow').style.display='none';
+  inputEl.placeholder='আরমানকে জিজ্ঞেস করুন';
+}
+
 renderWelcome();renderHistory();
 document.getElementById('memoryToggle').classList.toggle('off',!memoryOn);
 </script>
