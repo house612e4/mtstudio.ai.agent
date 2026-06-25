@@ -18,7 +18,11 @@
 html,body{height:100%;overflow:hidden;}
 body{background:var(--bg);color:var(--text);font-family:'Noto Sans Bengali','Inter',sans-serif;display:flex;flex-direction:column;height:100dvh;}
 button{font-family:inherit;}
-.star{background:linear-gradient(135deg,var(--cyan),var(--violet-bright) 50%,var(--blue));clip-path:polygon(50% 0%,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0% 50%,39% 39%);}
+
+/* brand star (rainbow→brand gradient) */
+.star{background-image:url('data:image/jpeg;base64,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');background-size:cover;background-position:center;border-radius:50%;}
+
+/* ===== Auth Screen ===== */
 #authScreen{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px calc(32px + env(safe-area-inset-bottom));}
 #authScreen.show{display:flex;}
 .auth-star{width:64px;height:64px;margin-bottom:24px;}
@@ -36,6 +40,8 @@ button{font-family:inherit;}
 .auth-switch span{color:var(--cyan);font-weight:600;cursor:pointer;}
 .auth-error{color:#f87171;font-size:13px;margin-bottom:12px;text-align:center;max-width:340px;min-height:18px;}
 .auth-skip{margin-top:18px;font-size:13.5px;color:var(--text-3);cursor:pointer;text-decoration:underline;}
+
+/* ===== Drawer ===== */
 #drawerOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:40;}
 #drawerOverlay.open{display:block;}
 #drawer{position:fixed;left:-310px;top:0;bottom:0;width:296px;background:var(--bg);z-index:50;display:flex;flex-direction:column;transition:left 0.25s cubic-bezier(0.4,0,0.2,1);padding-bottom:env(safe-area-inset-bottom);}
@@ -54,6 +60,8 @@ button{font-family:inherit;}
 .drawer-spacer{flex:1;}
 .drawer-bottom-item{display:flex;align-items:center;gap:14px;padding:14px 20px calc(14px + env(safe-area-inset-bottom));border:none;background:transparent;color:var(--text);cursor:pointer;width:100%;text-align:left;font-size:14.5px;border-top:1px solid var(--border);}
 .drawer-bottom-item .mini-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--cyan-deep),var(--violet));display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600;flex-shrink:0;}
+
+/* ===== Topbar ===== */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;flex-shrink:0;position:relative;z-index:30;}
 .tb-circle{width:42px;height:42px;border-radius:50%;border:none;background:var(--surface-2);cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -78,11 +86,15 @@ button{font-family:inherit;}
 .dd-div{height:1px;background:var(--border);margin:6px 4px;}
 .mo-info .mn{font-size:14.5px;font-weight:500;}
 .mo-info .md{font-size:11.5px;color:var(--text-3);margin-top:1px;}
+
+/* ===== Welcome (exact Gemini: small star + big white centered text) ===== */
 #chat{flex:1;overflow-y:auto;padding:0 0 8px;scroll-behavior:smooth;}
 #chat::-webkit-scrollbar{width:0;}
 #welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:88%;padding:24px;text-align:center;}
 #welcome .wstar{width:42px;height:42px;margin-bottom:26px;}
 .w-greeting{font-size:32px;font-weight:600;line-height:1.3;color:var(--text);letter-spacing:-0.4px;}
+
+/* ===== Messages ===== */
 .msg-group{padding:7px 16px;}
 .msg-group.user{display:flex;justify-content:flex-end;}
 .msg-group.ai{display:flex;justify-content:flex-start;padding-left:10px;}
@@ -106,6 +118,8 @@ button{font-family:inherit;}
 .typing-wrap span:nth-child(2){animation-delay:0.15s;background:var(--violet-bright);}
 .typing-wrap span:nth-child(3){animation-delay:0.3s;background:var(--blue);}
 @keyframes tb{0%,80%,100%{transform:translateY(0);opacity:0.4;}40%{transform:translateY(-6px);opacity:1;}}
+
+/* ===== Input bar (exact Gemini pill: + / Ask / mic / blue live) ===== */
 #input-area{flex-shrink:0;padding:8px 14px calc(14px + env(safe-area-inset-bottom));}
 .input-box{background:var(--surface-2);border-radius:30px;padding:7px 8px 7px 8px;display:flex;align-items:center;gap:4px;}
 .in-plus{width:42px;height:42px;border-radius:50%;border:none;background:transparent;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -120,8 +134,11 @@ button{font-family:inherit;}
 .send-btn svg{width:19px;height:19px;}
 .input-box.has-text .in-mic,.input-box.has-text .in-live{display:none;}
 .input-box.has-text .send-btn{display:flex;}
+
 #ddOverlay{display:none;position:fixed;inset:0;z-index:20;}
 #ddOverlay.open{display:block;}
+
+/* ===== Bottom Sheet (+ menu: Photos/Camera + list) ===== */
 #sheetOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:70;}
 #sheetOverlay.open{display:block;}
 #plusSheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--surface);border-radius:28px 28px 0 0;z-index:80;padding:10px 16px calc(24px + env(safe-area-inset-bottom));transition:bottom 0.28s cubic-bezier(0.4,0,0.2,1);max-height:80vh;overflow-y:auto;}
@@ -134,6 +151,8 @@ button{font-family:inherit;}
 .sheet-item svg{width:24px;height:24px;color:var(--text);flex-shrink:0;}
 .sheet-item-text .si1{font-size:16px;font-weight:500;}
 .sheet-item-text .si2{font-size:13px;color:var(--text-2);margin-top:1px;}
+
+/* ===== Account Sheet (Done + Switch account) ===== */
 #acctOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:70;}
 #acctOverlay.open{display:block;}
 #acctSheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--surface);border-radius:28px 28px 0 0;z-index:80;padding:0 0 calc(20px + env(safe-area-inset-bottom));transition:bottom 0.28s cubic-bezier(0.4,0,0.2,1);max-height:88vh;overflow-y:auto;}
@@ -153,6 +172,8 @@ button{font-family:inherit;}
 .acct-item svg{width:22px;height:22px;color:var(--text);flex-shrink:0;}
 .acct-signout{color:#f87171;}
 .acct-signout svg{color:#f87171;}
+
+/* ===== Generator & Settings panels ===== */
 .panel{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);}
 .panel.open{display:flex;}
 .panel-header{display:flex;align-items:center;gap:16px;padding:16px;flex-shrink:0;}
@@ -182,6 +203,8 @@ button{font-family:inherit;}
 </style>
 </head>
 <body>
+
+<!-- ===== AUTH SCREEN ===== -->
 <div id="authScreen">
   <div class="auth-star star"></div>
   <div class="auth-title" id="authTitle">MtStudio-তে স্বাগতম</div>
@@ -198,6 +221,8 @@ button{font-family:inherit;}
   <div class="auth-switch" id="authSwitch">অ্যাকাউন্ট নেই? <span onclick="toggleAuthMode()">সাইন আপ করুন</span></div>
   <div class="auth-skip" onclick="skipAuth()">আপাতত এড়িয়ে যান</div>
 </div>
+
+<!-- ===== DRAWER ===== -->
 <div id="drawerOverlay" onclick="closeDrawer()"></div>
 <div id="drawer">
   <div class="drawer-top"><div class="star"></div><span class="bt">MtStudio</span></div>
@@ -210,6 +235,8 @@ button{font-family:inherit;}
   <div class="drawer-spacer"></div>
   <button class="drawer-bottom-item" onclick="openAccount()"><div class="mini-avatar" id="drawerAvatar">M</div><span id="drawerName">অ্যাকাউন্ট</span></button>
 </div>
+
+<!-- ===== PLUS BOTTOM SHEET ===== -->
 <div id="sheetOverlay" onclick="closePlusSheet()"></div>
 <div id="plusSheet">
   <div class="sheet-grip"></div>
@@ -223,6 +250,8 @@ button{font-family:inherit;}
   <button class="sheet-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><div class="sheet-item-text"><div class="si1">Canvas</div><div class="si2">কোড, লেখা বা স্লাইড</div></div></button>
   <button class="sheet-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20 15 15 0 010-20"/></svg><div class="sheet-item-text"><div class="si1">Deep research</div><div class="si2">বিস্তারিত রিপোর্ট</div></div></button>
 </div>
+
+<!-- ===== ACCOUNT SHEET ===== -->
 <div id="acctOverlay" onclick="closeAccount()"></div>
 <div id="acctSheet">
   <div class="acct-head"><span class="acct-email" id="acctEmail">—</span><button class="acct-done" onclick="closeAccount()">Done</button></div>
@@ -235,6 +264,8 @@ button{font-family:inherit;}
   <button class="acct-item" onclick="clearAllHistory()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>চ্যাট ইতিহাস মুছুন</button>
   <button class="acct-item acct-signout" onclick="signOutUser()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>সাইন আউট</button>
 </div>
+
+<!-- ===== IMAGE/VIDEO GENERATOR PANEL ===== -->
 <div id="imageGenPanel" class="panel">
   <div class="panel-header"><button class="tb-circle" onclick="closeImageGen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button><span class="panel-title">আরমান জেনারেটর</span></div>
   <div class="panel-body">
@@ -246,6 +277,8 @@ button{font-family:inherit;}
     <div id="igResult"></div>
   </div>
 </div>
+
+<!-- ===== SETTINGS PANEL ===== -->
 <div id="settingsPanel" class="panel">
   <div class="panel-header"><button class="tb-circle" onclick="closeSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button><span class="panel-title">সেটিংস</span></div>
   <div class="panel-body">
@@ -254,6 +287,8 @@ button{font-family:inherit;}
     <div class="setting-row"><div class="setting-row-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg><div class="setting-row-text"><div class="t1" id="settingsName">Mahsin</div><div class="t2" id="settingsEmail">MtStudio AI — Owner</div></div></div></div>
   </div>
 </div>
+
+<!-- ===== MAIN ===== -->
 <div id="main">
   <div id="topbar">
     <button class="tb-circle" onclick="openDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
@@ -293,6 +328,7 @@ button{font-family:inherit;}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
+// ====== Firebase Config — তোমার আসল config এখানে বসাও ======
 const firebaseConfig = {
   apiKey: "FIREBASE_API_KEY",
   authDomain: "mt-studio-92d1e.firebaseapp.com",
@@ -312,6 +348,7 @@ let sessionHistory=[],chatHistories=JSON.parse(safeStorage.get('mtstudio_histori
 let currentUser=null, authMode='signin';
 const chatEl=document.getElementById('chat'),inputEl=document.getElementById('input'),sendBtn=document.getElementById('send'),inputBox=document.getElementById('inputBox');
 
+// ====== AUTH ======
 if(firebaseReady){
   auth.onAuthStateChanged(u=>{
     currentUser=u;
@@ -367,6 +404,7 @@ function applyUser(u){
 function switchAccount(){ if(firebaseReady){ const p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'}); auth.signInWithPopup(p).catch(e=>{}); } }
 function signOutUser(){ if(firebaseReady&&auth){ auth.signOut(); } safeStorage.remove('mt_skipped_auth'); closeAccount(); showAuth(); }
 
+// ====== UI control ======
 function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('open');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');}
 function openAccount(){closeDrawer();document.getElementById('acctSheet').classList.add('open');document.getElementById('acctOverlay').classList.add('open');}
@@ -397,6 +435,7 @@ function updateInputState(){inputBox.classList.toggle('has-text',inputEl.value.t
 inputEl.addEventListener('input',()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,120)+'px';updateInputState();});
 inputEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 
+// ====== Generator ======
 let genMode='image';
 function switchGenMode(mode){genMode=mode;document.getElementById('igTabImage').classList.toggle('active',mode==='image');document.getElementById('igTabVideo').classList.toggle('active',mode==='video');document.getElementById('igOptionsImage').style.display=mode==='image'?'block':'none';document.getElementById('igOptionsVideo').style.display=mode==='video'?'block':'none';document.getElementById('igResult').innerHTML='';}
 async function generateMedia(){
@@ -423,6 +462,7 @@ async function generateMedia(){
   finally{btn.disabled=false;btn.textContent='তৈরি করুন';}
 }
 
+// ====== init ======
 renderWelcome();renderHistory();
 document.getElementById('memoryToggle').classList.toggle('off',!memoryOn);
 </script>
