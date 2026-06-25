@@ -5,70 +5,66 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#050B14">
 <title>MtStudio</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&family=Google+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#050B14;--surface:#0A0F1C;--surface-2:#111827;--surface-3:#1a2332;
-  --border:rgba(255,255,255,0.06);--border-2:rgba(255,255,255,0.1);
+  --bg:#050B14;--surface:#0d1320;--surface-2:#141b2b;--surface-3:#1c2536;
+  --border:rgba(255,255,255,0.07);--border-2:rgba(255,255,255,0.12);
   --cyan:#22d3ee;--cyan-deep:#0891b2;--violet:#7c3aed;--violet-bright:#8b5cf6;
-  --pink:#ec4899;--green:#10b981;--blue:#3b82f6;--yellow:#f59e0b;
-  --text:#e2e8f0;--text-2:#94a3b8;--text-3:#5b6478;
+  --blue:#3b82f6;--green:#10b981;
+  --text:#e8edf4;--text-2:#9aa6b8;--text-3:#5b6478;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans Bengali','Google Sans','Inter',sans-serif;display:flex;flex-direction:column;height:100dvh;}
-
-/* ===== Drawer (Gemini-style: minimal, flat list) ===== */
-#drawerOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:40;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans Bengali','Inter',sans-serif;display:flex;flex-direction:column;height:100dvh;}
+button{font-family:inherit;}
+.star{background:linear-gradient(135deg,var(--cyan),var(--violet-bright) 50%,var(--blue));clip-path:polygon(50% 0%,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0% 50%,39% 39%);}
+#authScreen{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px calc(32px + env(safe-area-inset-bottom));}
+#authScreen.show{display:flex;}
+.auth-star{width:64px;height:64px;margin-bottom:24px;}
+.auth-title{font-size:26px;font-weight:600;text-align:center;margin-bottom:8px;}
+.auth-sub{font-size:14.5px;color:var(--text-2);text-align:center;margin-bottom:32px;line-height:1.5;}
+.auth-input{width:100%;max-width:340px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:14px;padding:15px 18px;color:var(--text);font-size:15px;outline:none;margin-bottom:12px;font-family:inherit;}
+.auth-input:focus{border-color:var(--cyan);}
+.auth-btn{width:100%;max-width:340px;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--cyan-deep),var(--violet));color:#fff;font-size:15.5px;font-weight:600;cursor:pointer;margin-top:6px;}
+.auth-btn:disabled{opacity:0.5;}
+.auth-google{width:100%;max-width:340px;padding:14px;border-radius:14px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;}
+.auth-google svg{width:20px;height:20px;}
+.auth-divider{display:flex;align-items:center;gap:12px;width:100%;max-width:340px;margin:14px 0;color:var(--text-3);font-size:12px;}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.auth-switch{margin-top:20px;font-size:14px;color:var(--text-2);}
+.auth-switch span{color:var(--cyan);font-weight:600;cursor:pointer;}
+.auth-error{color:#f87171;font-size:13px;margin-bottom:12px;text-align:center;max-width:340px;min-height:18px;}
+.auth-skip{margin-top:18px;font-size:13.5px;color:var(--text-3);cursor:pointer;text-decoration:underline;}
+#drawerOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:40;}
 #drawerOverlay.open{display:block;}
-#drawer{position:fixed;left:-300px;top:0;bottom:0;width:280px;background:var(--bg);z-index:50;display:flex;flex-direction:column;transition:left 0.25s cubic-bezier(0.4,0,0.2,1);padding-bottom:env(safe-area-inset-bottom);}
+#drawer{position:fixed;left:-310px;top:0;bottom:0;width:296px;background:var(--bg);z-index:50;display:flex;flex-direction:column;transition:left 0.25s cubic-bezier(0.4,0,0.2,1);padding-bottom:env(safe-area-inset-bottom);}
 #drawer.open{left:0;}
-.drawer-top{padding:20px 20px 8px;display:flex;align-items:center;gap:10px;}
-.drawer-top .brandmark{width:26px;height:26px;background:linear-gradient(135deg,var(--cyan),var(--violet-bright) 50%,var(--blue));clip-path:polygon(50% 0%,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0% 50%,46% 46%);}
-.drawer-top .brandtext{font-size:21px;font-weight:500;letter-spacing:-0.3px;}
-.new-chat-pill{display:flex;align-items:center;gap:12px;margin:12px 16px 4px;padding:13px 18px;border-radius:24px;background:var(--surface-2);border:none;color:var(--text);font-size:14.5px;font-weight:500;cursor:pointer;width:calc(100% - 32px);font-family:inherit;}
-.new-chat-pill svg{width:18px;height:18px;color:var(--text-2);}
-.drawer-nav-item{display:flex;align-items:center;gap:18px;padding:13px 20px;border:none;background:transparent;color:var(--text);cursor:pointer;width:100%;text-align:left;font-size:15px;font-family:inherit;}
+.drawer-top{padding:22px 22px 10px;display:flex;align-items:center;gap:11px;}
+.drawer-top .star{width:25px;height:25px;}
+.drawer-top .bt{font-size:21px;font-weight:600;}
+.new-chat-pill{display:flex;align-items:center;gap:13px;margin:14px 14px 6px;padding:13px 18px;border-radius:26px;background:var(--surface-2);border:none;color:var(--text);font-size:14.5px;font-weight:500;cursor:pointer;width:calc(100% - 28px);}
+.new-chat-pill svg{width:19px;height:19px;color:var(--text-2);}
+.drawer-nav-item{display:flex;align-items:center;gap:19px;padding:13px 22px;border:none;background:transparent;color:var(--text);cursor:pointer;width:100%;text-align:left;font-size:15px;}
 .drawer-nav-item svg{width:21px;height:21px;color:var(--text-2);flex-shrink:0;}
-.drawer-sep{height:1px;background:var(--border);margin:8px 0;}
-.drawer-recent-label{font-size:13px;font-weight:500;color:var(--text-2);padding:14px 20px 6px;}
-.drawer-recent-item{display:block;padding:11px 20px;color:var(--text-2);font-size:14.5px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:inherit;background:none;border:none;width:100%;text-align:left;}
+.drawer-sep{height:1px;background:var(--border);margin:10px 22px;}
+.drawer-recent-label{font-size:13px;font-weight:500;color:var(--text-2);padding:12px 22px 6px;}
+.drawer-recent-item{display:block;padding:11px 22px;color:var(--text-2);font-size:14px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;border:none;width:100%;text-align:left;}
 .drawer-recent-item:active{background:var(--surface-2);}
 .drawer-spacer{flex:1;}
-.drawer-bottom-item{display:flex;align-items:center;gap:18px;padding:14px 20px calc(14px + env(safe-area-inset-bottom));border:none;background:transparent;color:var(--text);cursor:pointer;width:100%;text-align:left;font-size:15px;font-family:inherit;border-top:1px solid var(--border);}
-.drawer-bottom-item svg{width:21px;height:21px;color:var(--text-2);}
-
-/* ===== Settings Panel ===== */
-#settingsPanel{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);}
-#settingsPanel.open{display:flex;}
-.panel-header{display:flex;align-items:center;gap:18px;padding:18px 16px;flex-shrink:0;}
-.icon-btn{width:40px;height:40px;border-radius:50%;border:none;background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.icon-btn svg{width:22px;height:22px;}
-.panel-title{font-size:20px;font-weight:500;}
-.panel-body{flex:1;overflow-y:auto;padding:8px 0;}
-.setting-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;}
-.setting-row-left{display:flex;align-items:center;gap:18px;}
-.setting-row-left svg{width:22px;height:22px;color:var(--text-2);flex-shrink:0;}
-.setting-row-text .t1{font-size:15.5px;}
-.setting-row-text .t2{font-size:12.5px;color:var(--text-2);margin-top:2px;}
-.toggle{width:42px;height:24px;border-radius:12px;background:var(--cyan-deep);position:relative;cursor:pointer;border:none;flex-shrink:0;}
-.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:21px;transition:left 0.2s;}
-.toggle.off{background:var(--surface-3);}
-.toggle.off::after{left:3px;}
-.settings-divider{height:1px;background:var(--border);margin:8px 20px;}
-
-/* ===== Topbar (Gemini-style) ===== */
+.drawer-bottom-item{display:flex;align-items:center;gap:14px;padding:14px 20px calc(14px + env(safe-area-inset-bottom));border:none;background:transparent;color:var(--text);cursor:pointer;width:100%;text-align:left;font-size:14.5px;border-top:1px solid var(--border);}
+.drawer-bottom-item .mini-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--cyan-deep),var(--violet));display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600;flex-shrink:0;}
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-#topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 8px;flex-shrink:0;position:relative;z-index:30;}
-.model-trigger{display:flex;align-items:center;gap:4px;background:transparent;border:none;cursor:pointer;color:var(--text);font-size:21px;font-weight:500;font-family:'Google Sans','Inter',sans-serif;padding:8px 10px;border-radius:10px;letter-spacing:-0.2px;}
-.model-trigger .v-name{color:var(--text-2);font-weight:400;font-size:18px;}
-.model-trigger svg{width:18px;height:18px;color:var(--text-2);margin-left:2px;transition:transform 0.2s;}
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;flex-shrink:0;position:relative;z-index:30;}
+.tb-circle{width:42px;height:42px;border-radius:50%;border:none;background:var(--surface-2);cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tb-circle svg{width:21px;height:21px;}
+.model-trigger{display:flex;align-items:center;gap:5px;background:transparent;border:none;cursor:pointer;color:var(--text);font-size:20px;font-weight:600;padding:8px 10px;border-radius:10px;}
+.model-trigger .v-name{color:var(--text-2);font-weight:400;}
+.model-trigger svg{width:17px;height:17px;color:var(--text-2);margin-left:1px;transition:transform 0.2s;}
 .model-trigger.open svg{transform:rotate(180deg);}
-.avatar-btn{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--cyan-deep),var(--violet));display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;margin-right:8px;}
-
-.model-dropdown{position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--border-2);border-radius:18px;padding:8px;min-width:260px;box-shadow:0 8px 32px rgba(0,0,0,0.6);display:none;z-index:100;}
+.model-dropdown{position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--border-2);border-radius:18px;padding:8px;min-width:265px;box-shadow:0 8px 32px rgba(0,0,0,0.6);display:none;z-index:100;max-height:70vh;overflow-y:auto;}
 .model-dropdown.open{display:block;}
-.mg-label{font-size:11px;font-weight:600;color:var(--text-3);padding:8px 12px 4px;letter-spacing:0.6px;text-transform:uppercase;}
+.mg-label{font-size:11px;font-weight:600;color:var(--text-3);padding:8px 12px 4px;letter-spacing:0.5px;text-transform:uppercase;}
 .mo{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;cursor:pointer;width:100%;border:none;background:transparent;text-align:left;color:var(--text);}
 .mo:active{background:var(--surface-3);}
 .mo.selected{background:rgba(34,211,238,0.1);}
@@ -82,28 +78,19 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Bengali','Goo
 .dd-div{height:1px;background:var(--border);margin:6px 4px;}
 .mo-info .mn{font-size:14.5px;font-weight:500;}
 .mo-info .md{font-size:11.5px;color:var(--text-3);margin-top:1px;}
-
-/* ===== Chat / Welcome (Gemini-style) ===== */
-#chat{flex:1;overflow-y:auto;padding:0 0 12px;scroll-behavior:smooth;}
+#chat{flex:1;overflow-y:auto;padding:0 0 8px;scroll-behavior:smooth;}
 #chat::-webkit-scrollbar{width:0;}
-#welcome{display:flex;flex-direction:column;justify-content:center;min-height:80%;padding:28px 24px;gap:14px;}
-.w-greeting{font-size:34px;font-weight:500;line-height:1.25;letter-spacing:-0.5px;
-  background:linear-gradient(100deg,var(--cyan) 0%,var(--violet-bright) 38%,var(--blue) 68%,var(--cyan) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.w-sub{font-size:22px;font-weight:400;color:var(--text-2);line-height:1.3;}
-.suggest-row{display:flex;gap:10px;overflow-x:auto;padding:24px 0 4px;margin:0 -24px;padding-left:24px;padding-right:24px;-webkit-overflow-scrolling:touch;}
-.suggest-row::-webkit-scrollbar{display:none;}
-.suggest-chip{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:20px;border:1px solid var(--border-2);background:var(--surface);color:var(--text);font-size:13.5px;white-space:nowrap;cursor:pointer;font-family:inherit;}
-.suggest-chip .si{font-size:16px;}
-
-.msg-group{padding:6px 16px;}
+#welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:88%;padding:24px;text-align:center;}
+#welcome .wstar{width:42px;height:42px;margin-bottom:26px;}
+.w-greeting{font-size:32px;font-weight:600;line-height:1.3;color:var(--text);letter-spacing:-0.4px;}
+.msg-group{padding:7px 16px;}
 .msg-group.user{display:flex;justify-content:flex-end;}
-.msg-group.ai{display:flex;justify-content:flex-start;gap:0;padding-left:8px;}
+.msg-group.ai{display:flex;justify-content:flex-start;padding-left:10px;}
 .msg-content{display:flex;flex-direction:column;gap:4px;max-width:88%;}
 .msg-meta{font-size:11px;color:var(--text-3);padding:2px 4px 0;}
 .bubble{padding:13px 17px;border-radius:22px;font-size:15.5px;line-height:1.65;word-break:break-word;}
 .msg-group.user .bubble{background:var(--surface-2);border-bottom-right-radius:6px;white-space:pre-wrap;}
-.msg-group.ai .bubble{background:transparent;padding:8px 8px;}
+.msg-group.ai .bubble{background:transparent;padding:8px;}
 .bubble h1,.bubble h2,.bubble h3{font-weight:600;margin:12px 0 6px;line-height:1.3;}
 .bubble h1{font-size:18px;}.bubble h2{font-size:16.5px;}.bubble h3{font-size:15.5px;color:var(--violet-bright);}
 .bubble p{margin:6px 0;}.bubble strong{font-weight:700;color:#f1f5f9;}.bubble em{font-style:italic;color:var(--text-2);}
@@ -115,137 +102,163 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Bengali','Goo
 .bubble blockquote{border-left:3px solid var(--violet-bright);padding-left:12px;margin:6px 0;color:var(--text-2);}
 .bubble a{color:var(--cyan);}
 .typing-wrap{display:flex;gap:5px;padding:14px 8px;}
-.typing-wrap span{width:7px;height:7px;border-radius:50%;animation:tbounce 1.1s infinite ease-in-out;background:var(--cyan);}
+.typing-wrap span{width:7px;height:7px;border-radius:50%;animation:tb 1.1s infinite ease-in-out;background:var(--cyan);}
 .typing-wrap span:nth-child(2){animation-delay:0.15s;background:var(--violet-bright);}
 .typing-wrap span:nth-child(3){animation-delay:0.3s;background:var(--blue);}
-@keyframes tbounce{0%,80%,100%{transform:translateY(0);opacity:0.4;}40%{transform:translateY(-6px);opacity:1;}}
-
-/* ===== Input bar (Gemini-style pill) ===== */
-#input-area{flex-shrink:0;padding:10px 12px calc(14px + env(safe-area-inset-bottom));}
-.input-box{background:var(--surface-2);border-radius:30px;padding:8px 8px 8px 20px;display:flex;align-items:flex-end;gap:6px;}
-#input{flex:1;resize:none;max-height:120px;min-height:26px;background:transparent;border:none;outline:none;color:var(--text);font-size:16px;line-height:1.5;font-family:'Noto Sans Bengali','Inter',sans-serif;padding:6px 0;}
+@keyframes tb{0%,80%,100%{transform:translateY(0);opacity:0.4;}40%{transform:translateY(-6px);opacity:1;}}
+#input-area{flex-shrink:0;padding:8px 14px calc(14px + env(safe-area-inset-bottom));}
+.input-box{background:var(--surface-2);border-radius:30px;padding:7px 8px 7px 8px;display:flex;align-items:center;gap:4px;}
+.in-plus{width:42px;height:42px;border-radius:50%;border:none;background:transparent;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.in-plus svg{width:24px;height:24px;}
+#input{flex:1;resize:none;max-height:120px;min-height:26px;background:transparent;border:none;outline:none;color:var(--text);font-size:16px;line-height:1.5;font-family:'Noto Sans Bengali','Inter',sans-serif;padding:8px 4px;}
 #input::placeholder{color:var(--text-3);}
-.input-icon-btn{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;background:transparent;color:var(--text-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.input-icon-btn svg{width:21px;height:21px;}
-.send-btn{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--cyan-deep),var(--violet));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.send-btn:disabled{opacity:0.3;}
-.send-btn svg{width:18px;height:18px;}
-.input-hint{text-align:center;font-size:11px;color:var(--text-3);margin-top:8px;}
-
+.in-mic{width:42px;height:42px;border-radius:50%;border:none;background:transparent;color:var(--text-2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.in-mic svg{width:21px;height:21px;}
+.in-live{width:42px;height:42px;border-radius:50%;border:none;background:var(--blue);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.in-live svg{width:20px;height:20px;}
+.send-btn{width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,var(--cyan-deep),var(--violet));display:none;align-items:center;justify-content:center;flex-shrink:0;}
+.send-btn svg{width:19px;height:19px;}
+.input-box.has-text .in-mic,.input-box.has-text .in-live{display:none;}
+.input-box.has-text .send-btn{display:flex;}
 #ddOverlay{display:none;position:fixed;inset:0;z-index:20;}
 #ddOverlay.open{display:block;}
-
-/* ===== Image/Video Generator ===== */
-#imageGenPanel{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);}
-#imageGenPanel.open{display:flex;}
-.ig-tabs{display:flex;gap:8px;padding:8px 16px 16px;}
-.ig-tab{flex:1;padding:11px;border-radius:24px;border:none;background:var(--surface-2);color:var(--text-2);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;}
+#sheetOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:70;}
+#sheetOverlay.open{display:block;}
+#plusSheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--surface);border-radius:28px 28px 0 0;z-index:80;padding:10px 16px calc(24px + env(safe-area-inset-bottom));transition:bottom 0.28s cubic-bezier(0.4,0,0.2,1);max-height:80vh;overflow-y:auto;}
+#plusSheet.open{bottom:0;}
+.sheet-grip{width:38px;height:4px;border-radius:3px;background:var(--surface-3);margin:4px auto 16px;}
+.sheet-cards{display:flex;gap:12px;margin-bottom:8px;}
+.sheet-card{flex:1;background:var(--surface-2);border:none;border-radius:20px;padding:32px 16px;color:var(--text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:12px;font-size:16px;font-weight:500;}
+.sheet-card svg{width:26px;height:26px;}
+.sheet-item{display:flex;align-items:center;gap:18px;padding:15px 8px;border:none;background:transparent;color:var(--text);cursor:pointer;width:100%;text-align:left;}
+.sheet-item svg{width:24px;height:24px;color:var(--text);flex-shrink:0;}
+.sheet-item-text .si1{font-size:16px;font-weight:500;}
+.sheet-item-text .si2{font-size:13px;color:var(--text-2);margin-top:1px;}
+#acctOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:70;}
+#acctOverlay.open{display:block;}
+#acctSheet{position:fixed;left:0;right:0;bottom:-100%;background:var(--surface);border-radius:28px 28px 0 0;z-index:80;padding:0 0 calc(20px + env(safe-area-inset-bottom));transition:bottom 0.28s cubic-bezier(0.4,0,0.2,1);max-height:88vh;overflow-y:auto;}
+#acctSheet.open{bottom:0;}
+.acct-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px;position:sticky;top:0;background:var(--surface);}
+.acct-email{font-size:15px;font-weight:500;}
+.acct-done{color:var(--cyan);font-size:16px;font-weight:600;background:none;border:none;cursor:pointer;}
+.acct-avatar-big{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,var(--cyan-deep),var(--violet));display:flex;align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:600;margin:8px auto 12px;}
+.acct-hi{text-align:center;font-size:21px;font-weight:600;margin-bottom:16px;}
+.acct-manage{display:block;margin:0 auto 18px;padding:12px 28px;border-radius:24px;border:1px solid var(--border-2);background:transparent;color:var(--cyan);font-size:14.5px;font-weight:600;cursor:pointer;}
+.acct-switch{display:flex;align-items:center;justify-content:space-between;margin:0 16px 18px;padding:15px 20px;border-radius:24px;background:var(--surface-2);border:none;color:var(--text);cursor:pointer;width:calc(100% - 32px);}
+.acct-switch .as-left{font-size:15.5px;font-weight:500;}
+.acct-switch .as-right{display:flex;align-items:center;gap:6px;color:var(--text-2);}
+.acct-switch .as-chev{width:18px;height:18px;}
+.acct-section-label{font-size:13px;color:var(--text-2);padding:6px 24px 8px;}
+.acct-item{display:flex;align-items:center;gap:18px;padding:16px 24px;border:none;background:transparent;color:var(--text);cursor:pointer;width:100%;text-align:left;font-size:15.5px;}
+.acct-item svg{width:22px;height:22px;color:var(--text);flex-shrink:0;}
+.acct-signout{color:#f87171;}
+.acct-signout svg{color:#f87171;}
+.panel{position:fixed;inset:0;background:var(--bg);z-index:60;display:none;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);}
+.panel.open{display:flex;}
+.panel-header{display:flex;align-items:center;gap:16px;padding:16px;flex-shrink:0;}
+.panel-title{font-size:20px;font-weight:600;}
+.panel-body{flex:1;overflow-y:auto;padding:8px 16px;}
+.ig-tabs{display:flex;gap:8px;padding:4px 0 16px;}
+.ig-tab{flex:1;padding:11px;border-radius:24px;border:none;background:var(--surface-2);color:var(--text-2);font-size:14px;font-weight:500;cursor:pointer;}
 .ig-tab.active{background:linear-gradient(135deg,var(--cyan-deep),var(--violet));color:#fff;}
 .ig-textarea{width:100%;background:var(--surface-2);border:none;border-radius:18px;padding:16px;color:var(--text);font-size:15px;font-family:'Noto Sans Bengali','Inter',sans-serif;resize:vertical;outline:none;margin-bottom:14px;}
-.ig-options{margin-bottom:14px;}
-.ig-select{width:100%;background:var(--surface-2);border:none;border-radius:14px;padding:13px 16px;color:var(--text);font-size:14.5px;font-family:inherit;outline:none;}
-.ig-generate-btn{width:100%;padding:15px;border-radius:18px;border:none;background:linear-gradient(135deg,var(--cyan-deep),var(--violet));color:#fff;font-size:15.5px;font-weight:600;cursor:pointer;font-family:inherit;}
+.ig-select{width:100%;background:var(--surface-2);border:none;border-radius:14px;padding:13px 16px;color:var(--text);font-size:14.5px;margin-bottom:14px;outline:none;}
+.ig-generate-btn{width:100%;padding:15px;border-radius:18px;border:none;background:linear-gradient(135deg,var(--cyan-deep),var(--violet));color:#fff;font-size:15.5px;font-weight:600;cursor:pointer;}
 .ig-generate-btn:disabled{opacity:0.5;}
 #igResult{margin-top:16px;}
 #igResult img,#igResult video{width:100%;border-radius:18px;}
 .ig-status{text-align:center;color:var(--text-2);font-size:13.5px;padding:24px;}
 .ig-error{color:#f87171;font-size:13.5px;text-align:center;padding:14px;background:rgba(248,113,113,0.08);border-radius:14px;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:16px 4px;}
+.setting-row-left{display:flex;align-items:center;gap:16px;}
+.setting-row-left svg{width:22px;height:22px;color:var(--text-2);}
+.setting-row-text .t1{font-size:15.5px;}
+.setting-row-text .t2{font-size:12.5px;color:var(--text-2);margin-top:2px;}
+.toggle{width:42px;height:24px;border-radius:12px;background:var(--cyan-deep);position:relative;cursor:pointer;border:none;flex-shrink:0;}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:21px;transition:left 0.2s;}
+.toggle.off{background:var(--surface-3);}
+.toggle.off::after{left:3px;}
+.settings-divider{height:1px;background:var(--border);margin:6px 0;}
 </style>
 </head>
 <body>
+<div id="authScreen">
+  <div class="auth-star star"></div>
+  <div class="auth-title" id="authTitle">MtStudio-তে স্বাগতম</div>
+  <div class="auth-sub" id="authSub">আরমানের সাথে কাজ শুরু করতে সাইন ইন করুন</div>
+  <div class="auth-error" id="authError"></div>
+  <button class="auth-google" onclick="googleSignIn()">
+    <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Google দিয়ে চালিয়ে যান
+  </button>
+  <div class="auth-divider">অথবা</div>
+  <input type="email" class="auth-input" id="authEmail" placeholder="ইমেইল" autocomplete="email">
+  <input type="password" class="auth-input" id="authPassword" placeholder="পাসওয়ার্ড" autocomplete="current-password">
+  <button class="auth-btn" id="authSubmit" onclick="emailAuth()">সাইন ইন</button>
+  <div class="auth-switch" id="authSwitch">অ্যাকাউন্ট নেই? <span onclick="toggleAuthMode()">সাইন আপ করুন</span></div>
+  <div class="auth-skip" onclick="skipAuth()">আপাতত এড়িয়ে যান</div>
+</div>
 <div id="drawerOverlay" onclick="closeDrawer()"></div>
 <div id="drawer">
-  <div class="drawer-top">
-    <div class="brandmark"></div>
-    <span class="brandtext">MtStudio</span>
-  </div>
-  <button class="new-chat-pill" onclick="newChat();closeDrawer()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    নতুন চ্যাট
-  </button>
-  <button class="drawer-nav-item" onclick="alert('শীঘ্রই আসছে')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    চ্যাট খুঁজুন
-  </button>
-  <button class="drawer-nav-item" onclick="openImageGen();closeDrawer()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-    আরমান জেনারেটর
-  </button>
+  <div class="drawer-top"><div class="star"></div><span class="bt">MtStudio</span></div>
+  <button class="new-chat-pill" onclick="newChat();closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg>নতুন চ্যাট</button>
+  <button class="drawer-nav-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>চ্যাট খুঁজুন</button>
+  <button class="drawer-nav-item" onclick="openImageGen();closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>আরমান জেনারেটর</button>
   <div class="drawer-sep"></div>
   <div class="drawer-recent-label">সাম্প্রতিক</div>
   <div id="chatHistory"></div>
   <div class="drawer-spacer"></div>
-  <button class="drawer-bottom-item" onclick="openSettings()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-    সেটিংস
-  </button>
+  <button class="drawer-bottom-item" onclick="openAccount()"><div class="mini-avatar" id="drawerAvatar">M</div><span id="drawerName">অ্যাকাউন্ট</span></button>
 </div>
-
-<div id="settingsPanel">
-  <div class="panel-header">
-    <button class="icon-btn" onclick="closeSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
-    <span class="panel-title">সেটিংস</span>
+<div id="sheetOverlay" onclick="closePlusSheet()"></div>
+<div id="plusSheet">
+  <div class="sheet-grip"></div>
+  <div class="sheet-cards">
+    <button class="sheet-card" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Photos</button>
+    <button class="sheet-card" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>Camera</button>
   </div>
+  <button class="sheet-item" onclick="closePlusSheet();openImageGen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><div class="sheet-item-text"><div class="si1">ছবি</div><div class="si2">তৈরি ও এডিট করুন</div></div></button>
+  <button class="sheet-item" onclick="closePlusSheet();openImageGen();switchGenMode('video')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg><div class="sheet-item-text"><div class="si1">ভিডিও</div><div class="si2">আরমান দিয়ে বানান</div></div></button>
+  <button class="sheet-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><div class="sheet-item-text"><div class="si1">Music</div><div class="si2">অডিও ট্র্যাক বানান</div></div></button>
+  <button class="sheet-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><div class="sheet-item-text"><div class="si1">Canvas</div><div class="si2">কোড, লেখা বা স্লাইড</div></div></button>
+  <button class="sheet-item" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20 15 15 0 010-20"/></svg><div class="sheet-item-text"><div class="si1">Deep research</div><div class="si2">বিস্তারিত রিপোর্ট</div></div></button>
+</div>
+<div id="acctOverlay" onclick="closeAccount()"></div>
+<div id="acctSheet">
+  <div class="acct-head"><span class="acct-email" id="acctEmail">—</span><button class="acct-done" onclick="closeAccount()">Done</button></div>
+  <div class="acct-avatar-big" id="acctAvatarBig">M</div>
+  <div class="acct-hi" id="acctHi">Hi!</div>
+  <button class="acct-manage" id="acctManageBtn" onclick="alert('শীঘ্রই আসছে')">অ্যাকাউন্ট পরিচালনা</button>
+  <button class="acct-switch" onclick="switchAccount()"><span class="as-left">Switch account</span><span class="as-right"><svg class="as-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></button>
+  <div class="acct-section-label">More from MtStudio</div>
+  <button class="acct-item" onclick="openSettingsFromAcct()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>সেটিংস</button>
+  <button class="acct-item" onclick="clearAllHistory()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>চ্যাট ইতিহাস মুছুন</button>
+  <button class="acct-item acct-signout" onclick="signOutUser()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>সাইন আউট</button>
+</div>
+<div id="imageGenPanel" class="panel">
+  <div class="panel-header"><button class="tb-circle" onclick="closeImageGen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button><span class="panel-title">আরমান জেনারেটর</span></div>
   <div class="panel-body">
-    <div class="setting-row" onclick="toggleMemory()">
-      <div class="setting-row-left">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        <div class="setting-row-text"><div class="t1">মেমোরি</div><div class="t2">আগের কথা মনে রাখবে</div></div>
-      </div>
-      <button class="toggle" id="memoryToggle"></button>
-    </div>
-    <div class="settings-divider"></div>
-    <div class="setting-row" onclick="clearAllHistory()">
-      <div class="setting-row-left">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
-        <div class="setting-row-text"><div class="t1">চ্যাট ইতিহাস মুছুন</div></div>
-      </div>
-    </div>
-    <div class="settings-divider"></div>
-    <div class="setting-row">
-      <div class="setting-row-left">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
-        <div class="setting-row-text"><div class="t1">Mahsin</div><div class="t2">MtStudio AI — Owner</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="imageGenPanel">
-  <div class="panel-header">
-    <button class="icon-btn" onclick="closeImageGen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
-    <span class="panel-title">আরমান জেনারেটর</span>
-  </div>
-  <div class="ig-tabs">
-    <button class="ig-tab active" id="igTabImage" onclick="switchGenMode('image')">ছবি</button>
-    <button class="ig-tab" id="igTabVideo" onclick="switchGenMode('video')">ভিডিও</button>
-  </div>
-  <div class="panel-body" style="padding:0 16px;">
+    <div class="ig-tabs"><button class="ig-tab active" id="igTabImage" onclick="switchGenMode('image')">ছবি</button><button class="ig-tab" id="igTabVideo" onclick="switchGenMode('video')">ভিডিও</button></div>
     <textarea id="igPrompt" class="ig-textarea" rows="3" placeholder="যা তৈরি করতে চান লিখুন..."></textarea>
-    <div class="ig-options" id="igOptionsImage">
-      <select id="igAspect" class="ig-select">
-        <option value="1:1">বর্গাকার (1:1)</option>
-        <option value="16:9">ওয়াইডস্ক্রিন (16:9)</option>
-        <option value="9:16" selected>স্টোরি/রিলস (9:16)</option>
-        <option value="4:3">প্রেজেন্টেশন (4:3)</option>
-      </select>
-    </div>
-    <div class="ig-options" id="igOptionsVideo" style="display:none;">
-      <select id="igDuration" class="ig-select">
-        <option value="5">৫ সেকেন্ড</option>
-        <option value="10">১০ সেকেন্ড</option>
-      </select>
-    </div>
+    <div id="igOptionsImage"><select id="igAspect" class="ig-select"><option value="1:1">বর্গাকার (1:1)</option><option value="16:9">ওয়াইডস্ক্রিন (16:9)</option><option value="9:16" selected>স্টোরি/রিলস (9:16)</option><option value="4:3">প্রেজেন্টেশন (4:3)</option></select></div>
+    <div id="igOptionsVideo" style="display:none;"><select id="igDuration" class="ig-select"><option value="5">৫ সেকেন্ড</option><option value="10">১০ সেকেন্ড</option></select></div>
     <button class="ig-generate-btn" id="igGenBtn" onclick="generateMedia()">তৈরি করুন</button>
     <div id="igResult"></div>
   </div>
 </div>
-
+<div id="settingsPanel" class="panel">
+  <div class="panel-header"><button class="tb-circle" onclick="closeSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button><span class="panel-title">সেটিংস</span></div>
+  <div class="panel-body">
+    <div class="setting-row" onclick="toggleMemory()"><div class="setting-row-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg><div class="setting-row-text"><div class="t1">মেমোরি</div><div class="t2">আগের কথা মনে রাখবে</div></div></div><button class="toggle" id="memoryToggle"></button></div>
+    <div class="settings-divider"></div>
+    <div class="setting-row"><div class="setting-row-left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg><div class="setting-row-text"><div class="t1" id="settingsName">Mahsin</div><div class="t2" id="settingsEmail">MtStudio AI — Owner</div></div></div></div>
+  </div>
+</div>
 <div id="main">
   <div id="topbar">
-    <button class="icon-btn" onclick="openDrawer()" style="margin-left:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button class="tb-circle" onclick="openDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div id="model-selector" style="position:relative;">
-      <button class="model-trigger" id="modelTrigger" onclick="toggleDD()"><span id="brandName">আরমান</span><span class="v-name" id="versionName">Pro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <button class="model-trigger" id="modelTrigger" onclick="toggleDD()"><span id="brandName">আরমান</span> <span class="v-name" id="versionName">Pro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button>
       <div class="model-dropdown" id="modelDropdown">
         <div class="mg-label">MtStudio AI</div>
         <button class="mo selected" onclick="sel('arman','Pro','আরমান','grok-4.3','p-ar',this)"><span class="mo-icon ic-ar">✦</span><div class="mo-info"><div class="mn">আরমান Pro</div><div class="md">সর্বোচ্চ নির্ভুলতা</div></div><svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
@@ -256,48 +269,114 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans Bengali','Goo
         <button class="mo" onclick="sel('claude','Opus 4.7','Claude','claude-opus-4-7','p-cl',this)"><span class="mo-icon ic-cl">◆</span><div class="mo-info"><div class="mn">Claude Opus 4.7</div><div class="md">Most powerful</div></div><svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
         <div class="dd-div"></div>
         <div class="mg-label">OpenAI GPT</div>
-        <button class="mo" onclick="sel('gpt','4o','GPT','gpt-4o','p-gp',this)"><span class="mo-icon ic-gp">●</span><div class="mo-info"><div class="mn">GPT-4o</div><div class="md">Advanced reasoning</div></div><svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <button class="mo" onclick="sel('gpt','4o','GPT','gpt-4o','p-gp',this)"><span class="mo-icon ic-gp">●</span><div class="mo-info"><div class="mn">GPT-4o</div><div class="md">Advanced</div></div><svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
         <div class="dd-div"></div>
         <div class="mg-label">Google Gemini</div>
-        <button class="mo" onclick="sel('gemini','2.0 Flash','Gemini','gemini-2.0-flash','p-gm',this)"><span class="mo-icon ic-gm">✧</span><div class="mo-info"><div class="mn">Gemini 2.0 Flash</div><div class="md">All-around help</div></div><svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
+        <button class="mo" onclick="sel('gemini','2.0 Flash','Gemini','gemini-2.0-flash','p-gm',this)"><span class="mo-icon ic-gm">✧</span><div class="mo-info"><div class="mn">Gemini 2.0 Flash</div><div class="md">All-around</div></div><svg class="chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
       </div>
     </div>
-    <div style="flex:1;"></div>
-    <button class="avatar-btn" onclick="openSettings()">M</button>
+    <button class="tb-circle" onclick="newChat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/></svg></button>
   </div>
   <div id="chat"><div id="welcome"></div></div>
   <div id="input-area">
-    <div class="input-box">
+    <div class="input-box" id="inputBox">
+      <button class="in-plus" onclick="openPlusSheet()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
       <textarea id="input" rows="1" placeholder="আরমানকে জিজ্ঞেস করুন"></textarea>
-      <button class="input-icon-btn" onclick="openImageGen()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <button class="in-mic" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg></button>
+      <button class="in-live" onclick="alert('শীঘ্রই আসছে')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="9" x2="6" y2="15"/><line x1="12" y1="5" x2="12" y2="19"/><line x1="18" y1="9" x2="18" y2="15"/></svg></button>
       <button class="send-btn" id="send" onclick="send()"><svg viewBox="0 0 24 24" fill="none" stroke="#050B14" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="6 11 12 5 18 11"/></svg></button>
     </div>
-    <div class="input-hint">আরমান ভুল করতে পারে — গুরুত্বপূর্ণ তথ্য যাচাই করুন</div>
   </div>
 </div>
 <div id="ddOverlay" onclick="closeDD()"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
+const firebaseConfig = {
+  apiKey: "FIREBASE_API_KEY",
+  authDomain: "mt-studio-92d1e.firebaseapp.com",
+  projectId: "mt-studio-92d1e",
+  storageBucket: "mt-studio-92d1e.appspot.com",
+  messagingSenderId: "FIREBASE_SENDER_ID",
+  appId: "FIREBASE_APP_ID"
+};
+let auth=null, firebaseReady=false;
+try{ firebase.initializeApp(firebaseConfig); auth=firebase.auth(); firebaseReady=true; }catch(e){ console.log('Firebase init skip',e); }
+
 const WORKER_URL="https://mt-ai.studiomt46.workers.dev/";
 const MT_KEY="mtai2026";
-const safeStorage = {
-  get(key, fallback){ try{ return localStorage.getItem(key) ?? fallback; }catch(e){ return fallback; } },
-  set(key, value){ try{ localStorage.setItem(key, value); }catch(e){} },
-  remove(key){ try{ localStorage.removeItem(key); }catch(e){} }
-};
+const safeStorage={get(k,f){try{return localStorage.getItem(k)??f;}catch(e){return f;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}},remove(k){try{localStorage.removeItem(k);}catch(e){}}};
 let cType='arman',cVersion='Pro',cBrand='আরমান',cModelId='grok-4.3',cPill='p-ar';
-let sessionHistory=[];
-let chatHistories=JSON.parse(safeStorage.get('mtstudio_histories','[]'));
-let memoryOn=true;
-const chatEl=document.getElementById('chat');
-const inputEl=document.getElementById('input');
-const sendBtn=document.getElementById('send');
-renderWelcome();
-renderHistory();
-document.getElementById('memoryToggle').classList.toggle('off',!memoryOn);
+let sessionHistory=[],chatHistories=JSON.parse(safeStorage.get('mtstudio_histories','[]')),memoryOn=true;
+let currentUser=null, authMode='signin';
+const chatEl=document.getElementById('chat'),inputEl=document.getElementById('input'),sendBtn=document.getElementById('send'),inputBox=document.getElementById('inputBox');
+
+if(firebaseReady){
+  auth.onAuthStateChanged(u=>{
+    currentUser=u;
+    if(u){ hideAuth(); applyUser(u); }
+    else if(safeStorage.get('mt_skipped_auth','')!=='1'){ showAuth(); }
+  });
+}else{ if(safeStorage.get('mt_skipped_auth','')!=='1') showAuth(); }
+
+function showAuth(){document.getElementById('authScreen').classList.add('show');}
+function hideAuth(){document.getElementById('authScreen').classList.remove('show');}
+function skipAuth(){safeStorage.set('mt_skipped_auth','1');hideAuth();}
+function toggleAuthMode(){
+  authMode=authMode==='signin'?'signup':'signin';
+  document.getElementById('authTitle').textContent=authMode==='signin'?'MtStudio-তে স্বাগতম':'নতুন অ্যাকাউন্ট';
+  document.getElementById('authSub').textContent=authMode==='signin'?'আরমানের সাথে কাজ শুরু করতে সাইন ইন করুন':'কয়েক সেকেন্ডে অ্যাকাউন্ট তৈরি করুন';
+  document.getElementById('authSubmit').textContent=authMode==='signin'?'সাইন ইন':'সাইন আপ';
+  document.getElementById('authSwitch').innerHTML=authMode==='signin'?'অ্যাকাউন্ট নেই? <span onclick="toggleAuthMode()">সাইন আপ করুন</span>':'অ্যাকাউন্ট আছে? <span onclick="toggleAuthMode()">সাইন ইন করুন</span>';
+  document.getElementById('authError').textContent='';
+}
+function authErr(m){document.getElementById('authError').textContent=m;}
+async function emailAuth(){
+  if(!firebaseReady){authErr('Firebase কনফিগার করা হয়নি');return;}
+  const email=document.getElementById('authEmail').value.trim(),pass=document.getElementById('authPassword').value;
+  if(!email||!pass){authErr('ইমেইল ও পাসওয়ার্ড দিন');return;}
+  const btn=document.getElementById('authSubmit');btn.disabled=true;authErr('');
+  try{
+    if(authMode==='signin') await auth.signInWithEmailAndPassword(email,pass);
+    else await auth.createUserWithEmailAndPassword(email,pass);
+  }catch(e){authErr(authErrMsg(e.code));}
+  finally{btn.disabled=false;}
+}
+async function googleSignIn(){
+  if(!firebaseReady){authErr('Firebase কনফিগার করা হয়নি');return;}
+  try{ const p=new firebase.auth.GoogleAuthProvider(); await auth.signInWithPopup(p); }
+  catch(e){ authErr(authErrMsg(e.code)); }
+}
+function authErrMsg(code){
+  const m={'auth/invalid-email':'ভুল ইমেইল','auth/user-not-found':'অ্যাকাউন্ট পাওয়া যায়নি','auth/wrong-password':'ভুল পাসওয়ার্ড','auth/email-already-in-use':'এই ইমেইল আগে থেকেই আছে','auth/weak-password':'পাসওয়ার্ড দুর্বল (৬+ অক্ষর)','auth/invalid-credential':'ভুল ইমেইল বা পাসওয়ার্ড','auth/popup-closed-by-user':'সাইন ইন বাতিল হয়েছে'};
+  return m[code]||'সমস্যা হয়েছে, আবার চেষ্টা করুন';
+}
+function applyUser(u){
+  const name=u.displayName||u.email?.split('@')[0]||'ব্যবহারকারী';
+  const letter=(name[0]||'M').toUpperCase();
+  document.getElementById('drawerAvatar').textContent=letter;
+  document.getElementById('drawerName').textContent=name;
+  document.getElementById('acctAvatarBig').textContent=letter;
+  document.getElementById('acctHi').textContent='Hi, '+name+'!';
+  document.getElementById('acctEmail').textContent=u.email||'';
+  document.getElementById('settingsName').textContent=name;
+  document.getElementById('settingsEmail').textContent=u.email||'MtStudio AI';
+  renderWelcome(name);
+}
+function switchAccount(){ if(firebaseReady){ const p=new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({prompt:'select_account'}); auth.signInWithPopup(p).catch(e=>{}); } }
+function signOutUser(){ if(firebaseReady&&auth){ auth.signOut(); } safeStorage.remove('mt_skipped_auth'); closeAccount(); showAuth(); }
+
 function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('open');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');}
-function openSettings(){closeDrawer();document.getElementById('settingsPanel').classList.add('open');}
+function openAccount(){closeDrawer();document.getElementById('acctSheet').classList.add('open');document.getElementById('acctOverlay').classList.add('open');}
+function closeAccount(){document.getElementById('acctSheet').classList.remove('open');document.getElementById('acctOverlay').classList.remove('open');}
+function openSettingsFromAcct(){closeAccount();document.getElementById('settingsPanel').classList.add('open');}
 function closeSettings(){document.getElementById('settingsPanel').classList.remove('open');}
+function openImageGen(){document.getElementById('imageGenPanel').classList.add('open');}
+function closeImageGen(){document.getElementById('imageGenPanel').classList.remove('open');}
+function openPlusSheet(){document.getElementById('plusSheet').classList.add('open');document.getElementById('sheetOverlay').classList.add('open');}
+function closePlusSheet(){document.getElementById('plusSheet').classList.remove('open');document.getElementById('sheetOverlay').classList.remove('open');}
 function toggleDD(){document.getElementById('modelDropdown').classList.toggle('open');document.getElementById('modelTrigger').classList.toggle('open');document.getElementById('ddOverlay').classList.toggle('open');}
 function closeDD(){document.getElementById('modelDropdown').classList.remove('open');document.getElementById('modelTrigger').classList.remove('open');document.getElementById('ddOverlay').classList.remove('open');}
 function toggleMemory(){memoryOn=!memoryOn;document.getElementById('memoryToggle').classList.toggle('off',!memoryOn);}
@@ -305,30 +384,26 @@ function sel(type,ver,brand,id,pill,btn){cType=type;cVersion=ver;cBrand=brand;cM
 function getPill(p){return p==='p-ar'?'আরমান':p==='p-cl'?'Claude':p==='p-gp'?'GPT':'Gemini';}
 function md(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/```([\s\S]*?)```/g,(_,c)=>`<pre><code>${c.trim()}</code></pre>`).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^# (.+)$/gm,'<h1>$1</h1>').replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/^---$/gm,'<hr>').replace(/^> (.+)$/gm,'<blockquote>$1</blockquote>').replace(/^\- (.+)$/gm,'<li>$1</li>').replace(/^\d+\. (.+)$/gm,'<li>$1</li>').replace(/(<li>[\s\S]*?<\/li>)/g,'<ul>$1</ul>').replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank">$1</a>').replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>');}
 function timeNow(){return new Date().toLocaleTimeString('bn-BD',{hour:'2-digit',minute:'2-digit'});}
-function renderWelcome(){document.getElementById('welcome').innerHTML=`<div class="w-greeting">হ্যালো, মাহসিন</div><div class="w-sub">আজকে কী নিয়ে কাজ করব?</div><div class="suggest-row"><button class="suggest-chip" onclick="quickSend(this)"><span class="si">📊</span>মার্কেটিং স্ট্র্যাটেজি</button><button class="suggest-chip" onclick="quickSend(this)"><span class="si">✍️</span>TikTok script</button><button class="suggest-chip" onclick="quickSend(this)"><span class="si">🚀</span>Growth plan</button><button class="suggest-chip" onclick="quickSend(this)"><span class="si">🤖</span>AI prompt বানাও</button></div>`;}
+function renderWelcome(name){const n=name||(currentUser&&(currentUser.displayName||currentUser.email?.split('@')[0]))||'মাহসিন';const w=document.getElementById('welcome');if(w)w.innerHTML=`<div class="wstar star"></div><div class="w-greeting">আজকে কী করব,<br>${n}?</div>`;}
 function removeWelcome(){const w=document.getElementById('welcome');if(w)w.remove();}
 function addMsg(role,text,pill='p-ar'){removeWelcome();const w=document.createElement('div');w.className=`msg-group ${role}`;if(role==='ai'){w.innerHTML=`<div class="msg-content"><div class="msg-meta">${getPill(pill)} · ${timeNow()}</div><div class="bubble">${md(text)}</div></div>`;}else{w.innerHTML=`<div class="msg-content"><div class="bubble">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>`;}chatEl.appendChild(w);chatEl.scrollTop=chatEl.scrollHeight;}
 function showTyping(){const w=document.createElement('div');w.className='msg-group ai';w.id='typing';w.innerHTML=`<div class="msg-content"><div class="bubble"><div class="typing-wrap"><span></span><span></span><span></span></div></div></div>`;chatEl.appendChild(w);chatEl.scrollTop=chatEl.scrollHeight;}
 function hideTyping(){const e=document.getElementById('typing');if(e)e.remove();}
 function newChat(){if(sessionHistory.length>0){const first=sessionHistory[0]?.content?.slice(0,40)||'নতুন চ্যাট';chatHistories.unshift({id:Date.now(),title:first});if(chatHistories.length>15)chatHistories.pop();safeStorage.set('mtstudio_histories',JSON.stringify(chatHistories));renderHistory();}sessionHistory=[];chatEl.innerHTML='<div id="welcome"></div>';renderWelcome();}
 function renderHistory(){const el=document.getElementById('chatHistory');el.innerHTML=chatHistories.slice(0,10).map(h=>`<button class="drawer-recent-item">${h.title}</button>`).join('');}
-function clearAllHistory(){if(confirm('সব চ্যাট ইতিহাস মুছে যাবে?')){chatHistories=[];safeStorage.remove('mtstudio_histories');renderHistory();newChat();closeSettings();}}
-function quickSend(btn){const txt=btn.querySelector('.si')?btn.textContent.replace(btn.querySelector('.si').textContent,'').trim():btn.textContent.trim();inputEl.value=txt;send();}
-async function send(){const text=inputEl.value.trim();if(!text)return;addMsg('user',text);inputEl.value='';inputEl.style.height='auto';sendBtn.disabled=true;showTyping();sessionHistory.push({role:'user',content:text});const pill=cPill;try{const res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','X-MT-Key':MT_KEY},body:JSON.stringify({message:text,model:cModelId,modelType:cType,history:sessionHistory.slice(-20),conversationId:'mahsin-main'})});const data=await res.json();hideTyping();if(!res.ok){addMsg('ai','সমস্যা: '+(data.error||'ত্রুটি'),pill);}else{addMsg('ai',data.reply||'...',pill);sessionHistory.push({role:'assistant',content:data.reply});if(sessionHistory.length>40)sessionHistory=sessionHistory.slice(-40);}}catch(e){hideTyping();addMsg('ai','সংযোগে সমস্যা হয়েছে।',pill);}finally{sendBtn.disabled=false;inputEl.focus();}}
-inputEl.addEventListener('input',()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,120)+'px';});
+function clearAllHistory(){if(confirm('সব চ্যাট ইতিহাস মুছে যাবে?')){chatHistories=[];safeStorage.remove('mtstudio_histories');renderHistory();newChat();closeAccount();closeSettings();}}
+async function send(){const text=inputEl.value.trim();if(!text)return;addMsg('user',text);inputEl.value='';inputEl.style.height='auto';updateInputState();showTyping();sessionHistory.push({role:'user',content:text});const pill=cPill;try{const res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','X-MT-Key':MT_KEY},body:JSON.stringify({message:text,model:cModelId,modelType:cType,history:sessionHistory.slice(-20),conversationId:(currentUser&&currentUser.uid)||'mahsin-main'})});const data=await res.json();hideTyping();if(!res.ok){addMsg('ai','সমস্যা: '+(data.error||'ত্রুটি'),pill);}else{addMsg('ai',data.reply||'...',pill);sessionHistory.push({role:'assistant',content:data.reply});if(sessionHistory.length>40)sessionHistory=sessionHistory.slice(-40);}}catch(e){hideTyping();addMsg('ai','সংযোগে সমস্যা হয়েছে।',pill);}}
+function updateInputState(){inputBox.classList.toggle('has-text',inputEl.value.trim().length>0);}
+inputEl.addEventListener('input',()=>{inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,120)+'px';updateInputState();});
 inputEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 
 let genMode='image';
-function openImageGen(){document.getElementById('imageGenPanel').classList.add('open');}
-function closeImageGen(){document.getElementById('imageGenPanel').classList.remove('open');}
 function switchGenMode(mode){genMode=mode;document.getElementById('igTabImage').classList.toggle('active',mode==='image');document.getElementById('igTabVideo').classList.toggle('active',mode==='video');document.getElementById('igOptionsImage').style.display=mode==='image'?'block':'none';document.getElementById('igOptionsVideo').style.display=mode==='video'?'block':'none';document.getElementById('igResult').innerHTML='';}
 async function generateMedia(){
   const prompt=document.getElementById('igPrompt').value.trim();
   if(!prompt){alert('কিছু লিখুন প্রথমে');return;}
-  const btn=document.getElementById('igGenBtn');
-  const resultEl=document.getElementById('igResult');
-  btn.disabled=true;btn.textContent='তৈরি হচ্ছে...';
-  resultEl.innerHTML='<div class="ig-status">আরমান কাজ করছে...</div>';
+  const btn=document.getElementById('igGenBtn'),resultEl=document.getElementById('igResult');
+  btn.disabled=true;btn.textContent='তৈরি হচ্ছে...';resultEl.innerHTML='<div class="ig-status">আরমান কাজ করছে...</div>';
   try{
     if(genMode==='image'){
       const aspect=document.getElementById('igAspect').value;
@@ -344,9 +419,12 @@ async function generateMedia(){
       else if(!res.ok||!data.video){throw new Error(data.error||'ভিডিও তৈরি ব্যর্থ হয়েছে');}
       else{resultEl.innerHTML=`<video src="${data.video}" controls autoplay loop></video>`;}
     }
-  }catch(e){resultEl.innerHTML=`<div class="ig-error">${e.message||'একটি সমস্যা হয়েছে'}</div>`;}
+  }catch(e){resultEl.innerHTML=`<div class="ig-error">${e.message||'সমস্যা হয়েছে'}</div>`;}
   finally{btn.disabled=false;btn.textContent='তৈরি করুন';}
 }
+
+renderWelcome();renderHistory();
+document.getElementById('memoryToggle').classList.toggle('off',!memoryOn);
 </script>
 </body>
 </html>
