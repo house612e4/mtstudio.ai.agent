@@ -330,12 +330,13 @@ button{font-family:inherit;}
 <script>
 // ====== Firebase Config — তোমার আসল config এখানে বসাও ======
 const firebaseConfig = {
-  apiKey: "FIREBASE_API_KEY",
+  apiKey: "AIzaSyDUrdFcmUduLMn0HqODf1uaRlDjCUg8ApM",
   authDomain: "mt-studio-92d1e.firebaseapp.com",
+  databaseURL: "https://mt-studio-92d1e-default-rtdb.firebaseio.com",
   projectId: "mt-studio-92d1e",
-  storageBucket: "mt-studio-92d1e.appspot.com",
-  messagingSenderId: "FIREBASE_SENDER_ID",
-  appId: "FIREBASE_APP_ID"
+  storageBucket: "mt-studio-92d1e.firebasestorage.app",
+  messagingSenderId: "455687864985",
+  appId: "1:455687864985:web:327dedaffdb7b5f8606e08"
 };
 let auth=null, firebaseReady=false;
 try{ firebase.initializeApp(firebaseConfig); auth=firebase.auth(); firebaseReady=true; }catch(e){ console.log('Firebase init skip',e); }
